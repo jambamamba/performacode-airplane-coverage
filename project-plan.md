@@ -16,6 +16,7 @@
 - [4. Architecture](#4-architecture)
 - [5. Algorithm Design](#5-algorithm-design)
   - [5.0 The algorithm in plain English (with figures)](#50-the-algorithm-in-plain-english-with-figures)
+  - [5.5 Alternative: incremental uncovered-set (Boolean subtraction)](#55-alternative-incremental-uncovered-set-boolean-subtraction)
 - [6. Numerical Robustness](#6-numerical-robustness)
 - [7. Real-Time Implementation](#7-real-time-implementation)
 - [8. DO-178C and DO-330 Alignment](#8-do-178c-and-do-330-alignment)
@@ -441,7 +442,36 @@ flowchart TD
 - Pairwise intersection: `det = a1·b2 − a2·b1`; `|det| < 1e-12` → parallel, no
   split; else solve 2×2 and convert to parameter `t` on each line.
 
+### 5.5 Alternative: incremental uncovered-set (Boolean subtraction)
+
+Proposed idea: keep a set of uncovered polygons. After each plane's pass,
+replace the set with the intersection of every polygon with that plane's
+covered band. At the end, a non-empty set ⟺ an uncovered point exists.
+
+**Verdict: the idea is correct — it is the classic incremental
+Boolean-subtraction algorithm and it is exact.** Covered bands are convex, so
+subtracting one band from a convex polygon yields at most two convex pieces;
+the invariant "the set always equals the exactly-uncovered region" is preserved
+at every step. With N = 100 the polygon count stays small. It loses to the
+fence-walk (§5.1) on four practical grounds:
+
+| # | Problem | Detail |
+|---|---------|--------|
+| P1 | **The hidden exponential** | One band cut creates ≤ 2 pieces, so pieces can double at *every* plane: worst case 2ⁿ. 2⁹⁹ ≈ 6 × 10²⁹. It stays tractable **only** because the pieces tile the plane (they cannot overlap — the set is disjoint), bounding the count by the size of the final line arrangement, O(M²) ≈ 4 × 10⁴ with M = 204. Robustness must not *assume* that grace: it must cap-splitting at an O(M²) budget and fail loudly (defensive ERROR) if exceeded. |
+| P2 | **Convexity must be re-established, not assumed** | The intermediate set is a disjoint union of convex pieces, but a naive "clip to the half-plane, else keep whole polygon" step can emit two triangles that share a diagonal (a valid union, individually convex) — after a few hundred cuts these fragments accumulate into slivers no wider than ε. A fragile epsilon pipeline then reports `OK` for a real hole (or a bogus point for covered ground) with no internal contradiction to detect it. Either the subtraction must split at every fence crossing (Sutherland–Hodgman outputs a fan, then re-convexify), or pieces must periodically be re-merged along shared edges. |
+| P3 | **O(pieces × vertices × N) bookkeeping** | Each pass re-clips every polygon vertex against every fence of the current plane. Cheap at N = 100, but it is per-plane array surgery (reallocs, index maps) — strictly more state and code paths than the stateless fence-walk, which stores nothing and streams candidates. |
+| P4 | **No early exit** | The set must be fully rebuilt per plane before any conclusion. The fence-walk can stop at the first unseen poke (§5.1 streams candidates and returns immediately). |
+
+The one decisive advantage: subtracting band i never *moves* an existing
+vertex, so the final polygon corners carry **only the input rounding error**
+(≈ 4 × 10⁻¹³ km, §6) — no ε-nudge tolerance analysis is needed to certify the
+printed point. For the assignment (N ≤ 100, 10 s), the fence-walk wins on
+simplicity, statelessness, early exit and DO-178C reviewability (§5.1);
+the incremental set is the better shape when N grows or band widths vary
+per plane — at which point P1–P2 become the core engineering problem.
+
 ---
+
 
 ## 6. Numerical Robustness
 
