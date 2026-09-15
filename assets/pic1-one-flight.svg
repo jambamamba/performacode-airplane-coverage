@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 650" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#37474f"/>
+    </marker>
+  </defs>
+
+  <text x="330" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#263238">What one airplane sees</text>
+
+  <!-- square -->
+  <rect x="70" y="70" width="500" height="500" fill="#fffdf7" stroke="#455a64" stroke-width="2"/>
+  <!-- unseen strip (top) -->
+  <rect x="70" y="70" width="500" height="100" fill="#ffcdd2" opacity="0.85"/>
+  <!-- seen band -->
+  <rect x="70" y="170" width="500" height="400" fill="#a5d6a7" opacity="0.55"/>
+  <!-- band edge -->
+  <line x1="70" y1="170" x2="570" y2="170" stroke="#c62828" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="330" y="162" text-anchor="middle" font-size="12.5" fill="#b71c1c">edge of view (exactly 50 km away)</text>
+
+  <!-- flight line -->
+  <line x1="70" y1="420" x2="570" y2="420" stroke="#1565c0" stroke-width="3.5"/>
+  <text x="330" y="443" text-anchor="middle" font-size="13" fill="#0d47a1">flight path — a perfectly straight line</text>
+
+  <!-- 50 km arrow -->
+  <line x1="470" y1="412" x2="470" y2="178" stroke="#37474f" stroke-width="2" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <text x="480" y="300" font-size="13" fill="#37474f">50 km</text>
+
+  <!-- region labels -->
+  <text x="210" y="120" text-anchor="middle" font-size="14" font-weight="bold" fill="#b71c1c">NEVER seen</text>
+  <text x="210" y="295" text-anchor="middle" font-size="14" fill="#1b5e20">everything here is SEEN</text>
+
+  <!-- corner labels -->
+  <text x="70" y="588" text-anchor="middle" font-size="12" fill="#616161">(0, 0)</text>
+  <text x="570" y="588" text-anchor="middle" font-size="12" fill="#616161">(100, 0)</text>
+  <text x="62" y="74" text-anchor="end" font-size="12" fill="#616161">(0, 100)</text>
+  <text x="578" y="74" font-size="12" fill="#616161">(100, 100)</text>
+
+  <text x="330" y="614" text-anchor="middle" font-size="14" fill="#37474f">The plane sees every point within 50 km of its line — the green band (it also sees 50 km below,</text>
+  <text x="330" y="634" text-anchor="middle" font-size="14" fill="#37474f">past the square's bottom edge). Points exactly 50 km away count as seen. Red = never seen.</text>
+</svg>

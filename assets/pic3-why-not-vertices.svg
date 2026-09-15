@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 760" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#37474f"/>
+    </marker>
+    <clipPath id="sqclip"><rect x="70" y="70" width="500" height="500"/></clipPath>
+  </defs>
+
+  <text x="330" y="28" text-anchor="middle" font-size="19" font-weight="bold" fill="#263238">Three flights leave one triangular hole —</text>
+  <text x="330" y="48" text-anchor="middle" font-size="19" font-weight="bold" fill="#263238">yet every corner of the hole counts as SEEN</text>
+
+  <!-- square -->
+  <rect x="70" y="70" width="500" height="500" fill="#fffdf7" stroke="#455a64" stroke-width="2"/>
+
+  <g clip-path="url(#sqclip)">
+    <!-- stripes (real equilateral configuration, inradius 60 km, centroid (50,50)) -->
+    <rect x="70" y="370" width="500" height="200" fill="#ffb74d" opacity="0.55"/>
+    <polygon points="70,70 406.5,70 118,570 70,570" fill="#90caf9" opacity="0.55"/>
+    <polygon points="570,70 233.5,70 522,570 570,570" fill="#80deea" opacity="0.5"/>
+  </g>
+
+  <!-- flight paths (dashed) -->
+  <line x1="64" y1="163.4" x2="124" y2="59.6" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="7 5"/>
+  <text x="58" y="150" text-anchor="end" font-size="12.5" fill="#0d47a1">flight 2</text>
+  <line x1="576" y1="163.4" x2="516" y2="59.6" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="7 5"/>
+  <text x="582" y="150" font-size="12.5" fill="#0d47a1">flight 3</text>
+  <line x1="60" y1="620" x2="600" y2="620" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="7 5"/>
+  <text x="330" y="640" text-anchor="middle" font-size="12.5" fill="#0d47a1">flight 1 (flew just south of the square)</text>
+
+  <!-- hole -->
+  <polygon points="320,220 233.5,370 406.5,370" fill="#ffffff" opacity="0.95" stroke="#c62828" stroke-width="2.5" stroke-dasharray="7 4"/>
+  <circle cx="320" cy="220" r="5" fill="#ffffff" stroke="#c62828" stroke-width="2"/>
+  <circle cx="233.5" cy="370" r="5" fill="#ffffff" stroke="#c62828" stroke-width="2"/>
+  <circle cx="406.5" cy="370" r="5" fill="#ffffff" stroke="#c62828" stroke-width="2"/>
+  <circle cx="320" cy="320" r="6" fill="#c62828"/>
+
+  <!-- top callout -->
+  <rect x="352" y="86" width="296" height="70" rx="6" fill="#ffffff" opacity="0.93" stroke="#c62828" stroke-width="1"/>
+  <text x="364" y="106" font-size="13" fill="#b71c1c">Nobody saw anything in here:</text>
+  <text x="364" y="124" font-size="13" fill="#b71c1c">every point is more than 50 km</text>
+  <text x="364" y="142" font-size="13" fill="#b71c1c">from all three flight lines.</text>
+  <line x1="356" y1="120" x2="326" y2="214" stroke="#c62828" stroke-width="1.2"/>
+
+  <!-- right callout -->
+  <rect x="410" y="392" width="240" height="88" rx="6" fill="#ffffff" opacity="0.93" stroke="#c62828" stroke-width="1"/>
+  <text x="422" y="412" font-size="13" fill="#b71c1c">Every corner (●) of the hole</text>
+  <text x="422" y="430" font-size="13" fill="#b71c1c">sits ON two stripe edges:</text>
+  <text x="422" y="448" font-size="13" fill="#b71c1c">exactly 50.0 km from two</text>
+  <text x="422" y="466" font-size="13" fill="#b71c1c">flights → it counts as SEEN.</text>
+  <line x1="414" y1="402" x2="410" y2="376" stroke="#c62828" stroke-width="1.2"/>
+
+  <!-- 50 km arrows -->
+  <line x1="490" y1="612" x2="490" y2="378" stroke="#37474f" stroke-width="2" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <text x="500" y="500" font-size="13" fill="#37474f">50 km</text>
+  <line x1="94" y1="111" x2="306" y2="232" stroke="#37474f" stroke-width="2" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <rect x="162" y="152" width="64" height="20" fill="#ffffff" opacity="0.9"/>
+  <text x="194" y="166" text-anchor="middle" font-size="12.5" fill="#37474f">50 km</text>
+  <line x1="546" y1="111" x2="334" y2="232" stroke="#37474f" stroke-width="2" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <rect x="414" y="152" width="64" height="20" fill="#ffffff" opacity="0.9"/>
+  <text x="446" y="166" text-anchor="middle" font-size="12.5" fill="#37474f">50 km</text>
+
+  <!-- legend -->
+  <rect x="70" y="694" width="18" height="14" fill="#ffb74d" opacity="0.8"/>
+  <text x="94" y="706" font-size="12.5" fill="#37474f">seen by flight 1</text>
+  <rect x="210" y="694" width="18" height="14" fill="#90caf9" opacity="0.8"/>
+  <text x="234" y="706" font-size="12.5" fill="#37474f">seen by flight 2</text>
+  <rect x="350" y="694" width="18" height="14" fill="#80deea" opacity="0.8"/>
+  <text x="374" y="706" font-size="12.5" fill="#37474f">seen by flight 3</text>
+  <rect x="490" y="694" width="18" height="14" fill="#ffffff" stroke="#c62828" stroke-width="1.5" stroke-dasharray="3 2"/>
+  <text x="514" y="706" font-size="12.5" fill="#37474f">seen by NOBODY</text>
+
+  <text x="330" y="732" text-anchor="middle" font-size="14" fill="#37474f">The three stripes cover everything except the hole. But a program that only checks the corners of</text>
+  <text x="330" y="750" text-anchor="middle" font-size="14" fill="#37474f">empty regions answers OK — wrong! — because all three corners lie exactly on stripe edges (50.0 km = seen).</text>
+</svg>

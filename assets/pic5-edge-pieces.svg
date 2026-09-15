@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 720" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#37474f"/>
+    </marker>
+  </defs>
+
+  <text x="330" y="28" text-anchor="middle" font-size="19" font-weight="bold" fill="#263238">Draw every fence, chop it into pieces, poke beside each piece</text>
+  <text x="330" y="48" text-anchor="middle" font-size="13.5" fill="#546e7a">Toy example: one horizontal flight (A) + one vertical flight (B) — their bands overlap, so one hole remains</text>
+
+  <!-- square -->
+  <rect x="70" y="70" width="500" height="500" fill="#fffdf7" stroke="#455a64" stroke-width="2"/>
+  <!-- band A (covers y_km <= 80) -->
+  <rect x="70" y="170" width="500" height="400" fill="#a5d6a7" opacity="0.45"/>
+  <!-- band B (covers x_km <= 75) -->
+  <rect x="70" y="70" width="375" height="500" fill="#80deea" opacity="0.4"/>
+  <!-- hole: x_km>75 and y_km>80  =>  px (445..570) x (70..170) -->
+  <rect x="445" y="70" width="125" height="100" fill="#ffcdd2" opacity="0.9"/>
+  <rect x="445" y="70" width="125" height="100" fill="none" stroke="#c62828" stroke-width="2" stroke-dasharray="6 4"/>
+
+  <!-- flight lines -->
+  <line x1="70" y1="420" x2="570" y2="420" stroke="#1565c0" stroke-width="3"/>
+  <text x="80" y="412" font-size="13" fill="#0d47a1">flight A</text>
+  <line x1="195" y1="70" x2="195" y2="570" stroke="#6a1b9a" stroke-width="3"/>
+  <text x="201" y="92" font-size="13" fill="#4a148c">flight B</text>
+
+  <!-- fences (band edges inside the square) -->
+  <line x1="70" y1="170" x2="570" y2="170" stroke="#c62828" stroke-width="2" stroke-dasharray="7 4"/>
+  <line x1="445" y1="70" x2="445" y2="570" stroke="#c62828" stroke-width="2" stroke-dasharray="7 4"/>
+  <text x="80" y="188" font-size="12" fill="#b71c1c">fence (edge of band A)</text>
+  <text x="439" y="560" text-anchor="end" font-size="12" fill="#b71c1c">fence (edge of band B)</text>
+
+  <!-- callout for the hole -->
+  <rect x="150" y="88" width="210" height="56" rx="5" fill="#ffffff" opacity="0.93" stroke="#c62828" stroke-width="1"/>
+  <text x="162" y="108" font-size="13" fill="#b71c1c">nobody saw this patch →</text>
+  <text x="162" y="126" font-size="13" fill="#b71c1c">print any point in it,</text>
+  <text x="162" y="138" font-size="13" fill="#b71c1c">e.g. (90, 90) km</text>
+  <line x1="360" y1="114" x2="438" y2="114" stroke="#c62828" stroke-width="1.4"/>
+
+  <!-- pokes on the h-fence y=170 (pieces: 70..445 and 445..570) -->
+  <circle cx="200" cy="162" r="5.5" fill="#2e7d32"/>
+  <circle cx="200" cy="178" r="5.5" fill="#2e7d32"/>
+  <circle cx="500" cy="162" r="5.5" fill="#c62828"/>
+  <circle cx="500" cy="178" r="5.5" fill="#2e7d32"/>
+  <!-- pokes on the v-fence x=445 (pieces: 70..170 and 170..570) -->
+  <circle cx="437" cy="120" r="5.5" fill="#2e7d32"/>
+  <circle cx="453" cy="120" r="5.5" fill="#c62828"/>
+  <circle cx="437" cy="300" r="5.5" fill="#2e7d32"/>
+  <circle cx="453" cy="300" r="5.5" fill="#2e7d32"/>
+
+  <!-- legend -->
+  <circle cx="86" cy="602" r="5.5" fill="#2e7d32"/>
+  <text x="98" y="606" font-size="12.5" fill="#37474f">poke reports "seen" ✓</text>
+  <circle cx="240" cy="602" r="5.5" fill="#c62828"/>
+  <text x="252" y="606" font-size="12.5" fill="#37474f">poke reports "unseen" ✗ → answer</text>
+  <line x1="470" y1="602" x2="496" y2="602" stroke="#c62828" stroke-width="2" stroke-dasharray="6 3"/>
+  <text x="502" y="606" font-size="12.5" fill="#37474f">fences</text>
+  <text x="86" y="626" font-size="12.5" fill="#616161">The square's border is a fence too (shown solid), so holes hugging an edge are caught the same way.</text>
+
+  <text x="330" y="656" text-anchor="middle" font-size="14" fill="#37474f">Pokes land right beside every fence piece, so they reach every patch of the square — an unseen patch</text>
+  <text x="330" y="676" text-anchor="middle" font-size="14" fill="#37474f">cannot hide. Here two pokes (red) fall in the top-right hole → the program prints one of them.</text>
+  <text x="330" y="700" text-anchor="middle" font-size="13" fill="#546e7a">Real run: ≤ 204 fences → ≤ ~20,000 pieces → ~40,000 pokes × ≤ 100 flights ≈ a few million float ops = milliseconds.</text>
+</svg>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 660" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#37474f"/>
+    </marker>
+  </defs>
+
+  <text x="330" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#263238">Two flights together — and the patch nobody saw</text>
+
+  <!-- square -->
+  <rect x="70" y="70" width="500" height="500" fill="#fffdf7" stroke="#455a64" stroke-width="2"/>
+  <!-- band A (horizontal flight at y=15) -->
+  <rect x="70" y="245" width="500" height="325" fill="#a5d6a7" opacity="0.55"/>
+  <!-- band B (vertical flight at x=85) -->
+  <rect x="245" y="70" width="325" height="500" fill="#80deea" opacity="0.5"/>
+  <!-- unseen gap -->
+  <rect x="70" y="70" width="175" height="175" fill="#ffcdd2" opacity="0.9"/>
+  <rect x="70" y="70" width="175" height="175" fill="none" stroke="#c62828" stroke-width="2" stroke-dasharray="7 4"/>
+
+  <!-- flight lines -->
+  <line x1="70" y1="495" x2="570" y2="495" stroke="#1565c0" stroke-width="3.5"/>
+  <text x="100" y="486" font-size="13" fill="#0d47a1">flight A</text>
+  <line x1="495" y1="70" x2="495" y2="570" stroke="#6a1b9a" stroke-width="3.5"/>
+  <text x="503" y="96" font-size="13" fill="#4a148c">flight B</text>
+
+  <!-- band labels -->
+  <text x="155" y="532" text-anchor="middle" font-size="13" fill="#1b5e20">seen by flight A</text>
+  <text x="556" y="120" text-anchor="end" font-size="13" fill="#00695c">seen by flight B</text>
+
+  <!-- gap callout -->
+  <rect x="252" y="120" width="170" height="66" rx="5" fill="#ffffff" opacity="0.92"/>
+  <text x="262" y="140" font-size="13" fill="#b71c1c">nobody saw this</text>
+  <text x="262" y="158" font-size="13" fill="#b71c1c">35 km × 35 km patch;</text>
+  <text x="262" y="176" font-size="13" fill="#b71c1c">any point in it is an answer</text>
+  <line x1="250" y1="153" x2="180" y2="153" stroke="#c62828" stroke-width="1.5"/>
+
+  <!-- example answer point -->
+  <circle cx="120" cy="120" r="6" fill="#c62828"/>
+  <text x="128" y="114" font-size="12.5" fill="#b71c1c">(10, 90)</text>
+
+  <!-- 50 km arrows -->
+  <line x1="350" y1="488" x2="350" y2="252" stroke="#37474f" stroke-width="2" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <text x="358" y="372" font-size="13" fill="#37474f">50 km</text>
+  <line x1="488" y1="550" x2="252" y2="550" stroke="#37474f" stroke-width="2" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <text x="370" y="541" text-anchor="middle" font-size="13" fill="#37474f">50 km</text>
+
+  <!-- corner labels -->
+  <text x="70" y="588" text-anchor="middle" font-size="12" fill="#616161">(0, 0)</text>
+  <text x="570" y="588" text-anchor="middle" font-size="12" fill="#616161">(100, 0)</text>
+  <text x="62" y="74" text-anchor="end" font-size="12" fill="#616161">(0, 100)</text>
+  <text x="578" y="74" font-size="12" fill="#616161">(100, 100)</text>
+
+  <text x="330" y="612" text-anchor="middle" font-size="14" fill="#37474f">Flight A sees a horizontal band, flight B a vertical one. Together they cover most of the square,</text>
+  <text x="330" y="632" text-anchor="middle" font-size="14" fill="#37474f">but the red top-left patch stays unseen. The program must output ANY unseen point — for example</text>
+  <text x="330" y="652" text-anchor="middle" font-size="14" fill="#37474f">(10, 90), which is 75 km from both flight lines.</text>
+</svg>

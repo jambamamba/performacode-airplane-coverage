@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 900" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#455a64"/>
+    </marker>
+  </defs>
+
+  <text x="330" y="28" text-anchor="middle" font-size="19" font-weight="bold" fill="#263238">The whole algorithm, start to finish</text>
+
+  <!-- B1 -->
+  <rect x="140" y="60" width="380" height="54" rx="8" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="330" y="93" text-anchor="middle" font-size="14" fill="#0d47a1">1 · Read L, N and the N flight reports from INPUT</text>
+  <line x1="330" y1="114" x2="330" y2="138" stroke="#455a64" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- D1 -->
+  <polygon points="330,144 535,196 330,248 125,196" fill="#fff8e1" stroke="#f9a825" stroke-width="1.5"/>
+  <text x="330" y="192" text-anchor="middle" font-size="13" fill="#795548">all numbers sane?</text>
+  <text x="330" y="210" text-anchor="middle" font-size="12" fill="#795548">(L, N, coordinates, distinct points)</text>
+  <!-- no -> ERROR -->
+  <line x1="535" y1="196" x2="556" y2="196" stroke="#455a64" stroke-width="2" marker-end="url(#fa)"/>
+  <text x="545" y="188" text-anchor="middle" font-size="12" fill="#455a64">no</text>
+  <rect x="560" y="170" width="88" height="52" rx="8" fill="#ffebee" stroke="#c62828" stroke-width="1.5"/>
+  <text x="604" y="192" text-anchor="middle" font-size="12.5" fill="#b71c1c">print</text>
+  <text x="604" y="208" text-anchor="middle" font-size="13" font-weight="bold" fill="#b71c1c">ERROR</text>
+  <!-- yes -->
+  <line x1="330" y1="248" x2="330" y2="266" stroke="#455a64" stroke-width="2" marker-end="url(#fa)"/>
+  <text x="340" y="262" font-size="12" fill="#455a64">yes</text>
+
+  <!-- B2 -->
+  <rect x="140" y="272" width="380" height="54" rx="8" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="330" y="298" text-anchor="middle" font-size="14" fill="#0d47a1">2 · Each flight → its line; two fences 50 km</text>
+  <text x="330" y="316" text-anchor="middle" font-size="14" fill="#0d47a1">to the left and right of it</text>
+  <line x1="330" y1="326" x2="330" y2="344" stroke="#455a64" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- B3 -->
+  <rect x="140" y="350" width="380" height="54" rx="8" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="330" y="383" text-anchor="middle" font-size="14" fill="#0d47a1">3 · Add the 4 square edges → fence list (≤ 204 fences)</text>
+  <line x1="330" y1="404" x2="330" y2="422" stroke="#455a64" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- B4 -->
+  <rect x="140" y="428" width="380" height="54" rx="8" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="330" y="461" text-anchor="middle" font-size="14" fill="#0d47a1">4 · Chop fences into pieces at every crossing in the square</text>
+  <line x1="330" y1="482" x2="330" y2="500" stroke="#455a64" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- B5 -->
+  <rect x="140" y="506" width="380" height="54" rx="8" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="330" y="539" text-anchor="middle" font-size="14" fill="#0d47a1">5 · Poke ε = 10 cm to each side of every piece's midpoint</text>
+  <line x1="330" y1="560" x2="330" y2="578" stroke="#455a64" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- D2 -->
+  <polygon points="330,584 535,640 330,696 125,640" fill="#fff8e1" stroke="#f9a825" stroke-width="1.5"/>
+  <text x="330" y="636" text-anchor="middle" font-size="13" fill="#795548">is any poke more than</text>
+  <text x="330" y="654" text-anchor="middle" font-size="13" fill="#795548">50 km from every flight?</text>
+  <!-- no -> OK -->
+  <line x1="535" y1="640" x2="556" y2="640" stroke="#455a64" stroke-width="2" marker-end="url(#fa)"/>
+  <text x="545" y="632" text-anchor="middle" font-size="12" fill="#455a64">no</text>
+  <rect x="560" y="614" width="88" height="52" rx="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/>
+  <text x="604" y="645" text-anchor="middle" font-size="13" font-weight="bold" fill="#1b5e20">OK</text>
+  <!-- yes -->
+  <line x1="330" y1="696" x2="330" y2="714" stroke="#455a64" stroke-width="2" marker-end="url(#fa)"/>
+  <text x="340" y="710" font-size="12" fill="#455a64">yes</text>
+
+  <!-- G1 -->
+  <rect x="140" y="720" width="380" height="54" rx="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/>
+  <text x="330" y="743" text-anchor="middle" font-size="14" fill="#1b5e20">print that poke's coordinates — done</text>
+  <text x="330" y="761" text-anchor="middle" font-size="13" fill="#1b5e20">(square was not fully seen)</text>
+
+  <text x="330" y="812" text-anchor="middle" font-size="13.5" fill="#37474f">Why this can't miss: every hole is a patch whose whole boundary is made of fence pieces —</text>
+  <text x="330" y="832" text-anchor="middle" font-size="13.5" fill="#37474f">and we poke just past every piece, on both sides. So some poke always lands inside any hole.</text>
+  <text x="330" y="860" text-anchor="middle" font-size="13" fill="#546e7a">Cost: ~40,000 pokes × ≤ 100 flights ≈ a few million float operations → milliseconds, far under the 10 s limit.</text>
+</svg>
