@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 330" font-family="Helvetica, Arial, sans-serif">
+  <text x="330" y="26" text-anchor="middle" font-size="17" font-weight="bold" fill="#263238">The atomic step: one band cut through one convex piece</text>
+
+  <!-- original piece (dashed outline, faint) -->
+  <polygon points="80,170 140,80 260,70 340,150 240,280" fill="#f5f5f5" stroke="#9e9e9e" stroke-width="2" stroke-dasharray="7 5"/>
+
+  <!-- band between the two edge lines -->
+  <polygon points="100,140 330,140 286,220 153,220" fill="#90caf9" opacity="0.4"/>
+  <line x1="50" y1="140" x2="430" y2="140" stroke="#c62828" stroke-width="2" stroke-dasharray="7 4"/>
+  <line x1="50" y1="220" x2="430" y2="220" stroke="#c62828" stroke-width="2" stroke-dasharray="7 4"/>
+  <text x="436" y="144" font-size="11.5" fill="#b71c1c">band edge</text>
+  <text x="436" y="224" font-size="11.5" fill="#b71c1c">band edge</text>
+
+  <!-- surviving pieces -->
+  <polygon points="100,140 140,80 260,70 330,140" fill="#ffb74d" opacity="0.85"/>
+  <polygon points="286,220 240,280 153,220" fill="#ce93d8" opacity="0.75"/>
+  <text x="205" y="102" font-size="13" font-weight="bold" fill="#e65100">piece 1 (kept)</text>
+  <text x="228" y="256" font-size="12.5" font-weight="bold" fill="#6a1b9a">piece 2 (kept)</text>
+
+  <!-- old vertex annotations -->
+  <circle cx="140" cy="80" r="4" fill="#212121"/>
+  <text x="150" y="66" font-size="11.5" fill="#37474f">old vertex — never moves</text>
+  <circle cx="340" cy="150" r="4" fill="#ffffff" stroke="#c62828" stroke-width="2"/>
+  <text x="352" y="166" font-size="11.5" fill="#b71c1c">vertex now covered → dropped</text>
+  <circle cx="80" cy="170" r="4" fill="#ffffff" stroke="#c62828" stroke-width="2"/>
+  <text x="30" y="196" font-size="11.5" fill="#b71c1c">covered → dropped</text>
+
+  <!-- flight line hint -->
+  <line x1="50" y1="180" x2="430" y2="180" stroke="#1565c0" stroke-width="2" stroke-dasharray="10 6"/>
+  <text x="436" y="184" font-size="11.5" fill="#0d47a1">flight line</text>
+
+  <text x="330" y="300" text-anchor="middle" font-size="12.5" fill="#37474f">One subtraction = one straight cut: at most TWO convex remainders, and old vertices are only deleted, never moved.</text>
+  <text x="330" y="318" text-anchor="middle" font-size="12.5" fill="#37474f">Every piece × every plane → worst case 2ⁿ pieces (P1), saved because pieces never overlap (they tile the uncovered region, ≈ O(M²)).</text>
+</svg>

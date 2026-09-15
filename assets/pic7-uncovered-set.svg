@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 370" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <clipPath id="p2"><rect x="15" y="64" width="140" height="140"/></clipPath>
+    <clipPath id="p3"><rect x="185" y="64" width="140" height="140"/></clipPath>
+  </defs>
+
+  <text x="340" y="24" text-anchor="middle" font-size="17" font-weight="bold" fill="#263238">The uncovered-set algorithm: subtract each plane's band, keep what's left</text>
+
+  <!-- Panel 1: start -->
+  <text x="85" y="52" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#37474f">① start: U = whole square</text>
+  <rect x="15" y="64" width="140" height="140" fill="#a5d6a7" opacity="0.5" stroke="#455a64" stroke-width="1.5"/>
+  <text x="85" y="140" text-anchor="middle" font-size="13" fill="#1b5e20">1 piece</text>
+  <text x="85" y="220" text-anchor="middle" font-size="11.5" fill="#546e7a">the set begins as the</text>
+  <text x="85" y="234" text-anchor="middle" font-size="11.5" fill="#546e7a">entire square, uncovered</text>
+
+  <!-- Panel 2: after plane A -->
+  <text x="255" y="52" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#37474f">② subtract plane A (vertical)</text>
+  <g clip-path="url(#p2)">
+    <rect x="78" y="64" width="14" height="140" fill="#90caf9" opacity="0.6"/>
+    <rect x="15" y="64" width="63" height="140" fill="#ffab91" opacity="0.85"/>
+    <rect x="92" y="64" width="63" height="140" fill="#ffab91" opacity="0.85"/>
+  </g>
+  <rect x="15" y="64" width="140" height="140" fill="none" stroke="#455a64" stroke-width="1.5"/>
+  <line x1="85" y1="64" x2="85" y2="204" stroke="#1565c0" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="255" y="220" text-anchor="middle" font-size="11.5" fill="#546e7a">band eats the middle → 2 pieces</text>
+  <text x="255" y="234" text-anchor="middle" font-size="11.5" fill="#b71c1c">P1: pieces can double every pass</text>
+
+  <!-- Panel 3: after plane B -->
+  <text x="425" y="52" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#37474f">③ subtract plane B (horizontal)</text>
+  <g clip-path="url(#p3)">
+    <rect x="248" y="64" width="14" height="140" fill="#90caf9" opacity="0.45"/>
+    <rect x="185" y="127" width="140" height="14" fill="#80deea" opacity="0.5"/>
+    <rect x="185" y="64" width="63" height="63" fill="#ffab91" opacity="0.85"/>
+    <rect x="262" y="64" width="63" height="63" fill="#ffab91" opacity="0.85"/>
+    <rect x="185" y="141" width="63" height="63" fill="#ffab91" opacity="0.85"/>
+    <rect x="262" y="141" width="63" height="63" fill="#ffab91" opacity="0.85"/>
+  </g>
+  <rect x="185" y="64" width="140" height="140" fill="none" stroke="#455a64" stroke-width="1.5"/>
+  <line x1="255" y1="64" x2="255" y2="204" stroke="#1565c0" stroke-width="2" stroke-dasharray="5 4"/>
+  <line x1="185" y1="134" x2="325" y2="134" stroke="#00838f" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="425" y="220" text-anchor="middle" font-size="11.5" fill="#546e7a">4 pieces now — the set always</text>
+  <text x="425" y="234" text-anchor="middle" font-size="11.5" fill="#546e7a">equals the exact uncovered region</text>
+
+  <!-- Panel 4: empty -->
+  <text x="595" y="52" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#37474f">④ after all N planes</text>
+  <rect x="525" y="64" width="140" height="140" fill="#90caf9" opacity="0.55" stroke="#455a64" stroke-width="1.5"/>
+  <text x="595" y="146" text-anchor="middle" font-size="30" fill="#37474f">∅</text>
+  <text x="595" y="220" text-anchor="middle" font-size="11.5" fill="#546e7a">set empty → print OK;</text>
+  <text x="595" y="234" text-anchor="middle" font-size="11.5" fill="#546e7a">else print any piece's vertex</text>
+
+  <!-- Pros / cons -->
+  <rect x="15" y="252" width="325" height="106" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1"/>
+  <text x="27" y="271" font-size="13" font-weight="bold" fill="#1b5e20">Where it wins</text>
+  <text x="27" y="290" font-size="11.5" fill="#37474f">• Exact by construction — the set IS the uncovered region</text>
+  <text x="27" y="308" font-size="11.5" fill="#37474f">• Surviving vertices never move → printed point needs no</text>
+  <text x="27" y="323" font-size="11.5" fill="#37474f">ε-nudge tolerance argument</text>
+  <text x="27" y="341" font-size="11.5" fill="#37474f">• The better shape as N grows or band widths vary per plane</text>
+
+  <rect x="340" y="252" width="325" height="106" rx="6" fill="#ffebee" stroke="#c62828" stroke-width="1"/>
+  <text x="352" y="271" font-size="13" font-weight="bold" fill="#b71c1c">Where it loses (vs. fence-walk, §5.1)</text>
+  <text x="352" y="290" font-size="11.5" fill="#37474f">• P1 — pieces can double every pass: 2ⁿ worst case</text>
+  <text x="352" y="308" font-size="11.5" fill="#37474f">• P2 — convexity must be re-established, or ε-slivers lie</text>
+  <text x="352" y="326" font-size="11.5" fill="#37474f">• P3 — per-pass polygon bookkeeping (state, reallocs)</text>
+  <text x="352" y="344" font-size="11.5" fill="#37474f">• P4 — no early exit: all N passes required</text>
+</svg>

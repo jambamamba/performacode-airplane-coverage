@@ -71,6 +71,7 @@ training exercise for the PerformaCode RTOS kernel engineer role.
 | Grid sampling at 0.5 km, refine boundaries | ❌ Rejected | Sampling can never *prove* coverage. Uncovered slivers between two nearly-parallel strip boundaries (e.g. angle 1e-6 rad) can be thinner than any grid step while every sampled point is covered → false `OK`. |
 | Check only candidate vertices (band-boundary intersections) | ❌ Rejected | The claim "an uncovered region must contain an uncovered vertex" is false: every vertex of an uncovered cell lies *on* two strip boundaries, i.e. at exactly 50 km → **covered** by definition (boundary points are visible). Counterexample: three flights forming a triangle of inradius 80 km centered in an L = 1000 square — the inner uncovered triangle (inradius 30 km) has *all* vertices covered, yet is entirely unviewed. |
 | Second code sample ("O(N log N) outline") | ❌ Not a program | Hardcodes `L = 120`, never reads `INPUT`, prints to stdout instead of `OUTPUT`. |
+| Incremental uncovered-set: keep uncovered polygons, intersect each with every plane's band | ⚠️ Correct but not chosen | Exact (§5.5): the set always equals the uncovered region, and surviving vertices never move. Not chosen here: pieces can double every pass (2ⁿ worst case), convexity must be re-established each cut or ε-slivers produce a false `OK`, per-pass polygon bookkeeping, and no early exit — see §5.5 (P1–P4). |
 
 The design below replaces both with an **exact arrangement-cell scan** that
 proves coverage *and* finds an uncovered point when one exists, in O(M² log M)
@@ -452,7 +453,16 @@ covered band. At the end, a non-empty set ⟺ an uncovered point exists.
 Boolean-subtraction algorithm and it is exact.** Covered bands are convex, so
 subtracting one band from a convex polygon yields at most two convex pieces;
 the invariant "the set always equals the exactly-uncovered region" is preserved
-at every step. With N = 100 the polygon count stays small. It loses to the
+at every step. With N = 100 the polygon count stays small.
+
+#### The figures
+
+| Figure | What it shows |
+|---|---|
+| <img src="assets/pic7-uncovered-set.png" width="420" alt="Uncovered-set algorithm panel by plane, with pros and cons"> | **Fig. 7 — the whole algorithm, panel by plane.** Start with U = the whole square; subtract each plane's band; pieces multiply (P1); an empty set at the end means `OK`, else print any surviving piece's vertex. The green/red boxes summarize where the method wins and where it loses. |
+| <img src="assets/pic8-band-subtraction.png" width="420" alt="One band cut through one convex piece"> | **Fig. 8 — the atomic step.** One band through one convex piece = one straight cut → at most two convex remainders. Old vertices are only ever *dropped*, never moved — the source of the method's one decisive advantage, and of P2's danger when an implementation skips splitting at the band edges. |
+
+The set still loses to the
 fence-walk (§5.1) on four practical grounds:
 
 | # | Problem | Detail |
