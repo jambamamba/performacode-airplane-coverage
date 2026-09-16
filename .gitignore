@@ -1,0 +1,11 @@
+# Build artifacts
+build/
+
+# Program working files (created at runtime in the cwd)
+INPUT
+OUTPUT
+
+# Coverage leftovers
+*.gcda
+*.gcno
+*.gcov

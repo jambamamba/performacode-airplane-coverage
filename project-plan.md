@@ -128,8 +128,8 @@ with M = 2N + 4 ≤ 204 lines.
 | DR-01 | Normalize each flight line to (a, b, c) with a² + b² = 1 so signed distance = a·x + b·y + c. | FR-09 |
 | DR-02 | The arrangement consists of the 2N band boundaries (s = ±50) plus the 4 square edges; M = 2N + 4 ≤ 204 lines. | FR-09, FR-10 |
 | DR-03 | Each arrangement line is clipped to the square and split at every other line's intersection; only elementary subsegments remain. | FR-10 |
-| DR-04 | Each elementary subsegment midpoint is nudged by ε = 1e-7 km (0.1 mm) to both sides along the unit normal; nudged points outside the square are discarded. | FR-10, FR-11 |
-| DR-05 | A candidate point is *unviewed* iff min distance > 50 + MIN_MARGIN, MIN_MARGIN = 1e-9 km. | FR-09, FR-11 |
+| DR-04 | Each elementary subsegment midpoint is nudged by ε = 1e-4 km (10 cm) to both sides along the unit normal; nudged points outside the square are discarded. (Raised from the draft's 1e-7 during implementation: 10 cm is ~2·10⁸ × the FP noise floor, and the residual sub-2ε blind window, R-2, stays far below any realistic test hole.) | FR-10, FR-11 |
+| DR-05 | A candidate point is *unviewed* iff min distance > 50 + MIN_MARGIN, MIN_MARGIN = 1e-6 km (1 mm). | FR-09, FR-11 |
 | DR-06 | Among all unviewed candidates, the one with maximum margin (min distance − 50) is printed — maximizes robustness against checker tolerance. | FR-11 |
 | DR-07 | All containers are fixed-capacity, statically sized (M ≤ 204, candidates streamed, never stored). | FR-12 |
 | DR-08 | No recursion, no exceptions past `main`'s top-level guard, no dynamic allocation after startup. | FR-12 |
@@ -345,7 +345,7 @@ And why not the obvious cheaper ideas?
 ### 5.1 Pipeline
 
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph B["Phase 1 - Build"]
         B1["Normalize flight lines<br/>a^2 + b^2 = 1"] --> B2["Emit band boundaries<br/>s = c+50 and s = c-50"]
         B2 --> B3["Add 4 square edge lines<br/>x=0, x=L, y=0, y=L"]
@@ -386,9 +386,9 @@ flowchart LR
 2. **Every cell is sampled.** Every cell inside the square is bounded by at
    least one elementary subsegment of some arrangement line; nudging that
    subsegment's midpoint by ε into the cell reaches a point of that cell
-   (ε = 0.1 mm is far below any cell dimension that matters at 1 m output
-   tolerance). Testing both sides of every subsegment covers the cells on
-   both sides.
+   (ε = 10 cm is ~2·10⁸ × the FP noise floor and far below any cell
+   dimension that matters — realistic holes are ≫ 0.2 m). Testing both
+   sides of every subsegment covers the cells on both sides.
 3. **Therefore:** an unviewed point exists ⟺ some nudged candidate has
    `min distance > 50`. The scan is a *proof*, not an estimate — unlike grid
    sampling.
@@ -487,9 +487,9 @@ per plane — at which point P1–P2 become the core engineering problem.
 
 | Concern | Analysis | Safeguard |
 |---|---|---|
-| FP noise at coordinates ≤ 1000 (intermediates ≤ ~2000) | double relative error 2⁻⁵² → absolute ≈ 4.4e-13 km | ε = 1e-7 km nudge is ~2·10⁵ × the noise floor |
+| FP noise at coordinates ≤ 1000 (intermediates ≤ ~2000) | double relative error 2⁻⁵² → absolute ≈ 4.4e-13 km | ε = 1e-4 km nudge is ~2·10⁸ × the noise floor |
 | False "unviewed" report | Candidate accepted only if margin > 1e-9 km ≫ 4.4e-13 | DR-05 threshold |
-| False "OK" on a sliver | Slivers wider than ~2ε = 0.2 mm are always sampled; narrower slivers are 100× below the 1 m output tolerance | ε choice; documented residual risk R-2 |
+| False "OK" on a sliver | Slivers wider than ~2ε = 0.2 m are always sampled; narrower slivers are 5× below the 1 m output tolerance | ε choice; documented residual risk R-2 |
 | Near-parallel line pairs | `det → 0` amplifies error in the intersection point | Reject split when `|det| < 1e-12`; dedupe t within 1e-9; margin-based acceptance means a wrong split point can never be *reported* — it can only be mis-clustered (benign) |
 | Duplicate / coincident flights | Identical lines produce identical boundaries and zero-length subsegments | t-dedupe (DR-09); zero-length subsegments skipped |
 | Boundary-exact visibility | Points at exactly 50 km are visible | Strict `>` in DR-05, so boundary-touching candidates are never reported |
@@ -498,7 +498,7 @@ per plane — at which point P1–P2 become the core engineering problem.
 **Rule enforced by DR-05/DR-06:** we can never print a *wrong* point (one that
 is actually viewed) — the margin threshold exceeds any achievable FP error by
 orders of magnitude. The only residual failure mode is a false `OK` for
-sub-0.2 mm slivers, which is beneath the task's tolerance model.
+sub-0.2 m slivers, which is beneath the task's tolerance model (R-2).
 
 ---
 
@@ -507,7 +507,7 @@ sub-0.2 mm slivers, which is beneath the task's tolerance model.
 ### 7.1 WCET budget (vs. the 10 s limit)
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["Parse input<br/>under 1 ms"] --> B["Build arrangement<br/>under 1 ms"] --> C["Clip + split<br/>under 10 ms"] --> D["Cell scan<br/>under 50 ms"] --> E["Format + write<br/>under 1 ms"]
     E --> T(["Predicted total: under 100 ms<br/>Limit: 10000 ms<br/>Safety factor: over 100x"])
 
@@ -610,7 +610,7 @@ event, not a dependency refresh.
 ### 8.3 Traceability chain (bidirectional)
 
 ```mermaid
-flowchart LR
+flowchart TD
     REQ["FR-01..FR-12<br/>Spec requirements"] --> DR["DR-01..DR-10<br/>Derived requirements"]
     DR --> DES["Design sections 4-6<br/>and unit interfaces"]
     DES --> CODE["src implementation"]
@@ -729,7 +729,7 @@ Legend — Type: **U** unit, **I** integration, **E** edge, **T** timing/resourc
 | TC-17 | T | N=100 worst-case (many near-parallel lines) timing | Total < 1 s (100× margin); phase budgets of §7.1 not exceeded | FR-12, §7.1 |
 | TC-18 | T | valgrind massif / RSS measurement | Peak RSS < 10 MB | DR-07 |
 | TC-19 | T | All fixtures rerun with ASan+UBSan | Zero findings; deterministic byte-identical outputs vs normal build | DR-08, DR-10 |
-| TC-U01..U20 | U | Function-level: parsing, normalization, clip (empty/full/point), parallel lines, dedupe, `testCandidate` MC/DC M1-M4, best-margin selection, formatting | Per-unit expected values | §9.2 |
+| TC-U01..U22 | U | Function-level: parsing, normalization, clip (empty/full/point/corner-guard), parallel lines, dedupe, `testCandidate` MC/DC M1-M4, best-margin selection, formatting | Per-unit expected values | §9.2 |
 
 ### 9.5 Structural coverage procedure
 
@@ -740,6 +740,17 @@ Legend — Type: **U** unit, **I** integration, **E** edge, **T** timing/resourc
    tables.
 3. Any uncovered construct → new TC or documented justification (e.g.
    defensive `else` unreachable by construction) — never silent.
+
+### 9.6 Structural-coverage justifications (non-100% lines)
+
+Final merged line coverage (fixtures + unit tests): `main.cpp`, `output.cpp`,
+`geometry.cpp`, `scanner.cpp` 100%; `input.cpp` 97.7% (1 line); `run.cpp`
+78.6% (3 lines). Justifications for the uncovered constructs:
+
+| Location | Construct | Justification |
+|---|---|---|
+| `input.cpp` (non-finite coordinate check) | `return false` after `std::isfinite` guard | Defense-in-depth, unreachable by construction on the pinned toolchain: libstdc++ `num_get` fails extraction of `inf`/`nan`/overflow tokens outright, so the earlier `readToken` check rejects them first. The guard stays for toolchains whose stream extraction accepts such literals (TC-U02 pins the *behavior*: such inputs must yield `ERROR`). |
+| `run.cpp` `catch (...)` | top-level exception handler | Defensive per §7.3: with DR-07/DR-08 (no heap allocation after startup, fixed-capacity containers) no exception is expected; the handler guarantees "write ERROR, exit 0" instead of a crash if the platform surprises us. Forcing it would require fault injection (e.g. OOM), which is out of scope for v1. |
 
 ---
 
@@ -775,7 +786,7 @@ Milestones: **M1** FR freeze (09-16) · **M2** design review passed (09-18) ·
 | ID | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|---|
 | R-1 | Checker uses **segment-capsule** semantics, not infinite band | Low | High — wrong OK/point near entry/exit zones | A-1 confirmed with stakeholder; predicate swappable (§7.4); capsule variant pre-designed; TC-02-style tests exist for both models |
-| R-2 | False `OK` on sub-0.2 mm sliver | Negligible | Medium | Below 1 m output tolerance; ε tunable; documented residual |
+| R-2 | False `OK` on sub-0.2 m sliver | Negligible | Medium | Below 1 m output tolerance; ε tunable; documented residual |
 | R-3 | Near-parallel intersections produce garbage split points | Medium | Low | det threshold + t-dedupe + margin acceptance (§6); TC-17 stress |
 | R-4 | Example input inconsistency (entry point not on boundary) | Certain (given) | Low | A-2 lenient validation keeps example accepted |
 | R-5 | Toolchain FP differences change output | Low | Low | Pinned compiler (§8.2), fixed flags, `-std=c++17`, no fast-math, DR-10 byte-identical check TC-19 |
@@ -798,10 +809,11 @@ performacode-airplane-coverage/
 ├── tests/
 │   ├── fixtures/INPUT_*      # one file per TC-xx
 │   ├── expected/OUTPUT_*     # expected results
-│   ├── test_unit.cpp         # TC-U01..U20 (assert-based, stdlib only)
+│   ├── test_unit.cpp         # TC-U01..U22 (assert-based, stdlib only)
 │   └── run_tests.sh          # harness with 10 s timeout per case
 ├── tools/
 │   └── verify_random.py      # independent oracle (not shipped)
+│   └── coverage_summary.awk  # per-file line-coverage summary for make coverage
 ├── Makefile                  # all, test, coverage, sanitize, timing
 └── BUILD_RECORD.md           # pinned toolchain + flags (DO-330 §8.2)
 ```
