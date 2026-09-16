@@ -17,6 +17,7 @@
 - [5. Algorithm Design](#5-algorithm-design)
   - [5.0 The algorithm in plain English (with figures)](#50-the-algorithm-in-plain-english-with-figures)
   - [5.5 Alternative: incremental uncovered-set (Boolean subtraction)](#55-alternative-incremental-uncovered-set-boolean-subtraction)
+  - [5.6 Why the fence scan cannot blow up exponentially (2ⁿ vs M²)](#56-why-the-fence-scan-cannot-blow-up-exponentially-2ⁿ-vs-m²)
 - [6. Numerical Robustness](#6-numerical-robustness)
 - [7. Real-Time Implementation](#7-real-time-implementation)
 - [8. DO-178C and DO-330 Alignment](#8-do-178c-and-do-330-alignment)
@@ -198,7 +199,7 @@ stateDiagram-v2
 |---|---|---|---|
 | `InputReader` | Open, tokenize, validate raw input | `parseL`, `parseN`, `parseFlights`, `checkNoExtraTokens` | FR-01, FR-04..FR-08 |
 | `Geometry` | Normalize lines, build and clip arrangement | `normalizeLine`, `buildArrangement`, `clipLineToSquare` | DR-01..DR-03 |
-| `Scanner` | Enumerate cells, nudge, test, select best point | `elementarySubsegments`, `testCandidate` | DR-04..DR-06 |
+| `Scanner` | Enumerate cells, nudge, test, select best point | `scanSquare` orchestrates: `buildFences`, `clipFencesToSquare`, `collectSplitParameters`, `probePieceMidpoint`, `uncoveredMargin` | DR-04..DR-06 |
 | `OutputWriter` | Format and write the single output line | `writeOk`, `writePoint`, `writeError` | FR-02, FR-10, FR-11 |
 | `Watchdog` (optional, compile-time) | Phase progress counters for external supervision | `RT_TRACE` macro | DR-08, §7 |
 
@@ -399,6 +400,13 @@ against N ≤ 100 flights → ≈ 8.3 M floating operations total. Runtime is
 **milliseconds**; no candidate points are stored (streamed), memory is
 O(M + N).
 
+Implementation note (2026-09-16): `scanSquare` is decomposed one function per
+phase and per loop, mirroring this pipeline exactly: `buildFences` (Phase 1),
+`clipFencesToSquare` + `collectSplitParameters` (Phase 2, one all-pairs loop),
+`uncoveredMargin` + `probePieceMidpoint` (Phase 3, per-piece probe). The
+orchestrator keeps the phase order and computation sequence of the original
+monolith; results are bit-identical (full re-verification in BUILD_RECORD.md).
+
 ### 5.3 Cell-scan detail
 
 ```mermaid
@@ -479,6 +487,94 @@ printed point. For the assignment (N ≤ 100, 10 s), the fence-walk wins on
 simplicity, statelessness, early exit and DO-178C reviewability (§5.1);
 the incremental set is the better shape when N grows or band widths vary
 per plane — at which point P1–P2 become the core engineering problem.
+
+### 5.6 Why the fence scan cannot blow up exponentially (2ⁿ vs M²)
+
+This section records in full *why* the chosen algorithm (§5.1) does not suffer
+from the piece-doubling problem of §5.5/P1: it never represents regions at
+all. It works on the **arrangement of fence lines**, whose complexity grows
+**quadratically and additively**, not exponentially and multiplicatively.
+
+#### Why the uncovered-polygon set doubles
+
+The naive algorithm of §5.5 maintains an explicit set R of uncovered
+polygons. Processing flight *i* means subtracting its band (an infinite
+strip) from **every** polygon currently in R. A strip cutting clean through a
+convex polygon splits it into 2 pieces; worst case every existing polygon is
+split every pass:
+
+- pass 0: 1 piece, pass 1: 2, pass 2: 4, … **R can reach 2ⁿ⁻¹ pieces**
+  (n = 100 → ~5·10²⁹ regions).
+- Costs compound too: each pass intersects the new strip against every
+  polygon → O(n·2ⁿ) time, plus vertex-list bookkeeping and
+  boolean-subtraction robustness problems on degenerate slivers.
+
+The doubling is inherent because the *state* (regions) is transformed by
+every input element in sequence.
+
+#### What the scanner does instead (three phases, scanner.cpp)
+
+**Phase 1 — fences are static and built once.** For n flights: 2 band-edge
+lines each + 4 square edges → **M = 2n + 4 ≤ 204 fences**. They never change.
+There is no sequential transformation of a region state, so "pieces double
+every pass" cannot occur — there is exactly one pass.
+
+**Phase 2 — splitting is additive, not multiplicative.** Each pair of fences
+is tested once (all-pairs, O(M²)). A crossing *inside the square* adds
+exactly **one parameter t to each of the two fences' split lists**
+(`addSplitIfInterior` on both ts[i] and ts[j]). The piece count on fence i is
+(crossings on i) + 1 — it grows **by one per crossing**, regardless of how
+many flights produced those crossings. Summed over fences:
+
+- pieces ≤ M + 2·C(M,2) ≈ **M² ≈ 41,600 intervals** worst case at n = 100
+  (usually far fewer),
+- which is exactly the classical complexity of a line arrangement —
+  Θ(M²) faces/edges. Nothing can touch every cell more cheaply, and the scan
+  touches *exactly* that, in any input order (sorting the split parameters
+  makes the decomposition canonical; flight order is irrelevant).
+
+The crux: the polygon method's *regions* double because each new band acts on
+every accumulated region. Here each crossing is a **shared 1D event counted
+once**, added to two lists. Linear events, quadratic total.
+
+**Phase 3 — pokes instead of polygons.** Each elementary piece is just an
+interval [t_k, t_{k+1}] — two doubles on a fence, not a polygon with
+vertices. The scan pokes ε = 1e-4 km to each side of the piece midpoint and
+evaluates distance to the flights directly (O(n) per poke). Total:
+O(M²) splits + O(M²·n) pokes ≈ **O(n³)** ≈ 8M multiply-adds at n = 100 —
+matching the measured timings in BUILD_RECORD.md. Memory is O(M²) scalars,
+tens of KB.
+
+#### Why sampling beside fences finds every hole (no region bookkeeping needed)
+
+The uncovered set U = square ∩ {|aᵢx + bᵢy + cᵢ| > 50 ∀i} is a union of
+**faces of the fence arrangement** (its boundary can only lie on band edges
+or square edges). Every face of a line arrangement is bounded by elementary
+pieces of that arrangement. Therefore: if U contains a face wide enough to
+matter, the poke ε-beside some piece's midpoint lands inside it, and the
+min-distance check (with the kMarginAccept = 1e-6 km surplus, §6) reports it.
+If a face is narrower than ~2ε + tolerance it is below the 1 m output
+tolerance — declaring OK there is *correct by the numeric contract*, not a
+missed detection. That ε-margin contract is precisely what lets the scan
+**detect** uncovered faces without ever **representing** them — and
+detection-with-tolerance is all the spec requires (§5.2, §5.3).
+
+#### Side-by-side
+
+| | Uncovered-polygon set (§5.5) | Fence-and-poke (§5.1, this code) |
+|---|---|---|
+| State | region set, transformed per flight | static line set, one all-pairs pass |
+| Worst-case pieces | O(2ⁿ) regions (n=100 → astronomically many) | O(M²) ≈ 41,600 intervals (M = 204) |
+| Time | O(n·2ⁿ) | O(n³) ≈ 0.1 s measured (BUILD_RECORD.md) |
+| Degeneracies | sliver polygons multiply, orientation/area errors compound | a shallow crossing adds one t to two lists; sliver pieces still get a midpoint poke (TC-17, vertex-counterexample unit test) |
+| Robustness surface | polygon booleans | point-in-square and split-tolerance checks at 1e-9, above the ~4.4e-13 FP noise floor (§6) |
+
+One honest caveat for the assurance case: the quadratic bound holds because
+decision A-1 makes each viewed region a convex strip whose edges are *lines*
+— the argument leans on A-1. Had the band been a bounded rectangle around
+the *segment* (the rejected A-2 model), fences would be segments and a
+crossing could add more bookkeeping; the scanner's §5.1 design is tied to
+A-1 explicitly (see Appendix A traceability).
 
 ---
 
@@ -743,14 +839,17 @@ Legend — Type: **U** unit, **I** integration, **E** edge, **T** timing/resourc
 
 ### 9.6 Structural-coverage justifications (non-100% lines)
 
-Final merged line coverage (fixtures + unit tests): `main.cpp`, `output.cpp`,
-`geometry.cpp`, `scanner.cpp` 100%; `input.cpp` 97.7% (1 line); `run.cpp`
-78.6% (3 lines). Justifications for the uncovered constructs:
+Final merged line coverage (fixtures + unit tests), re-measured after the
+2026-09-16 `scanSquare` decomposition: `main.cpp`, `output.cpp`,
+`geometry.cpp` 100%; `scanner.cpp` 100% of statements (3 closing braces
+flagged `=====` — see table); `input.cpp` 97.7% (1 line); `run.cpp` 78.6%
+(3 lines). Justifications for the uncovered constructs:
 
 | Location | Construct | Justification |
 |---|---|---|
 | `input.cpp` (non-finite coordinate check) | `return false` after `std::isfinite` guard | Defense-in-depth, unreachable by construction on the pinned toolchain: libstdc++ `num_get` fails extraction of `inf`/`nan`/overflow tokens outright, so the earlier `readToken` check rejects them first. The guard stays for toolchains whose stream extraction accepts such literals (TC-U02 pins the *behavior*: such inputs must yield `ERROR`). |
 | `run.cpp` `catch (...)` | top-level exception handler | Defensive per §7.3: with DR-07/DR-08 (no heap allocation after startup, fixed-capacity containers) no exception is expected; the handler guarantees "write ERROR, exit 0" instead of a crash if the platform surprises us. Forcing it would require fault injection (e.g. OOM), which is out of scope for v1. |
+| `scanner.cpp` lines 58, 72, 98 (post-refactor) | closing braces `}` of `buildFences`, `clipFencesToSquare`, `collectSplitParameters` | gcov attributes these to exception-unwinding epilogue regions (`=====`), not to executable statements: every actual statement in scanner.cpp carries a positive execution count (verified in the annotated `.gcov`, `make report`). An unwinding region executes only if an exception escapes the helper — impossible under the DR-07/DR-08 no-throw design, same rationale as the `run.cpp` handler. The 2026-09-16 decomposition added no new uncoverable logic; behavior is bit-identical to the pre-refactor monolith. |
 
 ---
 
