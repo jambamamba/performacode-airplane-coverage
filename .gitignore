@@ -9,3 +9,5 @@ OUTPUT
 *.gcda
 *.gcno
 *.gcov
+tools/__pycache__
+build

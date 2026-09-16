@@ -21,7 +21,7 @@ COV_FIX   := build/cov/fixture
 COV_UNIT  := build/cov/unit
 COV_MERGED := build/cov/merged
 
-.PHONY: all test fixtures coverage report sanitize timing oracle clean
+.PHONY: all test fixtures coverage report sanitize timing oracle cucumber clean
 
 all: $(BIN)
 
@@ -125,6 +125,13 @@ timing: $(BIN)
 
 oracle: $(BIN)
 	python3 tools/verify_random.py random --bin $(BIN) --trials 50
+
+# Gherkin/BDD suite: scenarios, PNG coverage diagrams, timing table
+cucumber: $(BIN)
+	python3 tools/cucumber.py --bin $(BIN)
+
+cucumber-smoke: $(BIN)
+	python3 tools/cucumber.py --bin $(BIN) --tags @timing --no-images
 
 clean:
 	rm -rf build *.gcda *.gcno *.gcov

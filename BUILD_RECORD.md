@@ -47,6 +47,7 @@ Notes:
 | `make coverage` / `make report` | `-O0 -g --coverage` | gcov structural coverage; counters of both coverage binaries (same program name `forest` in `build/cov/fixture` and `build/cov/unit`) are overlaid with `gcov-tool merge` (TC + §9.5) |
 | `make timing` | as graded build | TC-04/TC-17 wall time + peak RSS |
 | `make oracle` | python3 tools/verify_random.py | Differential testing vs. independent oracle |
+| `make cucumber` | python3 tools/cucumber.py | Gherkin BDD layer: 55 scenarios across 4 `.feature` files (many x0/y0/x1/y1 example rows); every run is verified by the independent oracle, rendered to a PNG (viewed band green / unviewed red, reference-figure style) in `build/cucumber/images/`, and reported in a per-scenario timing table (`build/cucumber/timing.md`). `make cucumber-smoke` runs the tagged @timing subset |
 
 ## Structural coverage result (§9.5, merged fixtures + unit tests)
 
@@ -72,3 +73,4 @@ Notes:
 | TC-04/TC-17 timing (N=100 stress) | PASS (0.10 s wall vs 10 s limit) |
 | Peak RSS | ~7.5 MB vs 4 GB limit |
 | Structural coverage | 100% lines on main/output/geometry/scanner; residual lines justified (plan §9.6) |
+| Gherkin scenarios (`make cucumber`) | PASS (55/55, oracle-verified, images + timing table generated) |

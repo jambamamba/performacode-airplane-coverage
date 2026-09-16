@@ -810,11 +810,13 @@ performacode-airplane-coverage/
 │   ├── fixtures/INPUT_*      # one file per TC-xx
 │   ├── expected/OUTPUT_*     # expected results
 │   ├── test_unit.cpp         # TC-U01..U22 (assert-based, stdlib only)
-│   └── run_tests.sh          # harness with 10 s timeout per case
+│   ├── run_tests.sh          # harness with 10 s timeout per case
+│   └── features/*.feature    # Gherkin BDD scenarios (make cucumber)
 ├── tools/
-│   └── verify_random.py      # independent oracle (not shipped)
-│   └── coverage_summary.awk  # per-file line-coverage summary for make coverage
-├── Makefile                  # all, test, coverage, sanitize, timing
+│   ├── verify_random.py      # independent oracle (not shipped)
+│   ├── coverage_summary.awk  # per-file line-coverage summary for make coverage
+│   └── cucumber.py           # stdlib Gherkin runner + oracle checks + PNG rendering
+├── Makefile                  # all, test, coverage, sanitize, timing, cucumber
 └── BUILD_RECORD.md           # pinned toolchain + flags (DO-330 §8.2)
 ```
 
