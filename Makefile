@@ -1,6 +1,6 @@
 # Makefile — Forest Fire (Task 1) build and verification targets.
 # Toolchain is pinned in BUILD_RECORD.md; a compiler bump is a
-# re-verification event (project-plan.md §8.2).
+# re-verification event (PROJECT_PLAN.md §8.2).
 
 CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra -Wpedantic
@@ -14,6 +14,18 @@ HDR := src/input.h src/geometry.h src/scanner.h src/output.h src/run.h
 
 BIN     := build/forest
 BIN_SAN := build/forest.san
+REPORTS := build/reports
+
+# Static-analysis toolchain (see BUILD_RECORD.md §4). Versions are pinned in
+# the report headers; a tool bump is a re-review event, not a re-verification
+# event (they are development tools, not part of the graded artifact).
+CLANG_FORMAT ?= $(HOME)/.local/bin/clang-format
+CLANG_TIDY   ?= $(HOME)/.local/bin/clang-tidy
+CLANG_QUERY  ?= clang-query-20
+VALGRIND     ?= valgrind
+# Optional overrides for a non-installed valgrind, e.g. a local extraction:
+#   make valgrind VALGRIND_BIN=/tmp/vg/root/usr/bin/valgrind \
+#                VALGRIND_LIB=/tmp/vg/root/usr/libexec/valgrind
 
 # Both coverage builds use the program name `forest` (in separate dirs) so
 # gcov-tool merge can overlay their counters.
@@ -21,7 +33,9 @@ COV_FIX   := build/cov/fixture
 COV_UNIT  := build/cov/unit
 COV_MERGED := build/cov/merged
 
-.PHONY: all test fixtures coverage report sanitize timing oracle cucumber clean
+.PHONY: all test fixtures coverage report sanitize timing oracle cucumber \
+        cucumber-smoke gherkin-report format format-check static query \
+        valgrind analysis clean
 
 all: $(BIN)
 
@@ -133,5 +147,90 @@ cucumber: $(BIN)
 cucumber-smoke: $(BIN)
 	python3 tools/cucumber.py --bin $(BIN) --tags @timing --no-images
 
+# Full Gherkin run + tracked images + BUILD_RECORD.md report regeneration.
+gherkin-report: $(BIN)
+	python3 tools/cucumber.py --bin $(BIN) --images-dir assets/cucumber
+	python3 tools/gherkin_report.py
+
 clean:
 	rm -rf build *.gcda *.gcno *.gcov
+
+# --------------------------------------------------------------------------
+# Analysis & reports (docs/: DAL_ANALYSIS.md, COVERAGE_ANALYSIS.md,
+# EDGE_CASES.md). Reports land in build/reports/.
+# --------------------------------------------------------------------------
+
+# clang-tidy and clang-query need a compile database; generated from the same
+# flags as the graded build so the analysis sees exactly the graded code.
+compile_commands.json: Makefile $(SRC)
+	@echo '[' > $@.tmp
+	@sep=""; \
+	 for f in $(SRC); do \
+	   printf '%s{ "directory": "%s", "command": "%s -std=c++17 -Wall -Wextra -Wpedantic -I%s/src -c %s/%s -o /dev/null", "file": "%s/%s" }\n' \
+	     "$$sep" "$(CURDIR)" "$(CXX)" "$(CURDIR)" "$(CURDIR)" "$$f" "$(CURDIR)" "$$f" >> $@.tmp; \
+	   sep=","; \
+	 done
+	@echo ']' >> $@.tmp && mv $@.tmp $@
+
+# Report only (no in-place changes): fails when a file deviates from the style.
+format-check: .clang-format $(SRC) $(HDR) | $(REPORTS)
+	@rm -f $(REPORTS)/clang-format.log
+	@status=0; for f in $(SRC) $(HDR); do \
+	   $(CLANG_FORMAT) --dry-run --Werror "$$f" >>$(REPORTS)/clang-format.log 2>&1 \
+	     || status=1; \
+	 done; \
+	 if [ $$status -eq 0 ]; then echo "clang-format: all files conform"; \
+	 else echo "clang-format: deviations found -> $(REPORTS)/clang-format.log"; fi; \
+	 exit $$status
+
+# Apply the style in place (explicit action — review the diff afterwards).
+format: .clang-format $(SRC) $(HDR)
+	@$(CLANG_FORMAT) -i $(SRC) $(HDR)
+	@echo "clang-format applied to src/ headers and sources"
+
+# Full static analysis over the graded TUs. Findings are triaged in
+# docs/COVERAGE_ANALYSIS.md §5; the report is a review artifact.
+static: compile_commands.json .clang-tidy $(SRC) $(HDR) | $(REPORTS)
+	@$(CLANG_TIDY) --config-file=.clang-tidy -p $(CURDIR) $(SRC) \
+	   > $(REPORTS)/clang-tidy.log 2>&1 || true
+	@n=$$(grep -c "warning:" $(REPORTS)/clang-tidy.log || true); \
+	 echo "clang-tidy: $$n findings -> $(REPORTS)/clang-tidy.log"; \
+	 grep "warning:" $(REPORTS)/clang-tidy.log | sed 's/^.*warning: /  /' | sort | uniq -c | sort -rn | head -12
+
+# AST structural queries: FP equality in decisions, C-style casts, magic
+# literals, branch structure, gotos. Output triaged in docs/COVERAGE_ANALYSIS.md §6.
+query: compile_commands.json tools/queries/checks.query $(SRC) | $(REPORTS)
+	@rm -f $(REPORTS)/clang-query.log
+	@for f in $(SRC); do \
+	   echo "=== $$f ===" >> $(REPORTS)/clang-query.log; \
+	   $(CLANG_QUERY) -p $(CURDIR) -f tools/queries/checks.query "$$f" \
+	     >> $(REPORTS)/clang-query.log 2>&1 || true; \
+	 done
+	@echo "clang-query report -> $(REPORTS)/clang-query.log"
+
+# Valgrind memcheck (+leakcheck) over every acceptance fixture and the N=100
+# stress inputs. Exit code 9 on any finding.
+valgrind: $(BIN)
+	@vg="$(VALGRIND_BIN)"; [ -n "$$vg" ] || vg="$(VALGRIND)"; \
+	 command -v "$$vg" >/dev/null 2>&1 || { \
+	   echo "valgrind not found. Install it, or run e.g.:"; \
+	   echo "  make valgrind VALGRIND_BIN=/tmp/vg/root/usr/bin/valgrind VALGRIND_LIB=/tmp/vg/root/usr/libexec/valgrind"; \
+	   exit 1; }; \
+	 set -e; tmp=$$(mktemp -d); trap 'rm -rf "$$tmp"' EXIT; \
+	 : > $(REPORTS)/valgrind.log 2>/dev/null || { mkdir -p $(REPORTS); : > $(REPORTS)/valgrind.log; }; \
+	 for f in tests/fixtures/INPUT_*; do \
+	   d=$$(mktemp -d "$$tmp/run.XXXX"); cp "$$f" "$$d/INPUT"; \
+	   id=$$(basename "$$f"); \
+	   ( cd "$$d" && "$$vg" -q --tool=memcheck --leak-check=full \ 
+	     --error-exitcode=9 "$(CURDIR)/$(BIN)" >>"$(CURDIR)/$(REPORTS)/valgrind.log" 2>&1 ) \
+	     || { echo "valgrind: FAILURES on $$id (see $(REPORTS)/valgrind.log)"; exit 1; }; \
+	   echo "  $$id: clean"; \
+	 done; \
+	 echo "valgrind memcheck: clean on all fixtures ($(REPORTS)/valgrind.log)"
+
+# Aggregate: everything the review needs, reports in build/reports/.
+analysis: format-check static query valgrind
+	@echo "--- analysis complete; reports in $(REPORTS)/ ---"
+
+$(REPORTS):
+	@mkdir -p $(REPORTS)

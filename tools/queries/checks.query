@@ -1,0 +1,43 @@
+// clang-query structural checks — Forest Fire (Task 1)
+// Assurance probes for the FP/decision structure claimed in
+// docs/COVERAGE_ANALYSIS.md. Each match is a review lead, not an automatic
+// defect: several are deliberate and documented (e.g. tolerance compares).
+
+// 1. Floating-point equality/inequality comparisons in decisions — every one
+//    must be a documented tolerance compare (1e-4/1e-6 per DR-04/DR-05).
+match ifStmt(hasCondition(expr(hasDescendant(
+    binaryOperator(anyOf(hasOperatorName("=="), hasOperatorName("!=")),
+                   hasLHS(expr(hasType(realFloatingPointType))))))))
+
+// 2. All binary FP comparisons inside conditions — review lead for band-edge
+//    decisions (must reference the tolerance constants or exact predicates).
+match ifStmt(hasCondition(expr(hasDescendant(
+    binaryOperator(hasAnyOperatorName("<", "<=", ">", ">="),
+                   hasLHS(expr(hasType(realFloatingPointType))))))))
+
+// 3. C-style casts — forbidden by the coding standard (plan §7); casts are
+//    expected only in output formatting (double -> text).
+match castExpr(unless(cxxStaticCastExpr()), unless(cxxFunctionalCastExpr()),
+               unless(cxxDynamicCastExpr()), unless(implicitCastExpr()))
+
+// 4. Narrowing FP -> integer conversions — the only sanctioned sites are the
+//    grid-index computations in scanner.cpp and result rounding in output.cpp.
+match implicitCastExpr(hasCastKind("IntegralCast"),
+                       hasSourceExpression(expr(hasType(realFloatingPointType))))
+
+// 5. goto / setjmp family — must be zero.
+match gotoStmt()
+
+// 6. Recursion — must be zero (stack-boundedness claim, plan §7).
+match functionDecl(unless(hasName("main")), isDefinition(),
+                   hasDescendant(declRefExpr(to(functionDecl(
+                       hasName(matchesName("^clip|^scan|^intersect")))))))
+
+// 7. Floating-point literals used directly in decisions — review lead for
+//    magic constants (documented tolerances allowed).
+match ifStmt(hasCondition(expr(hasDescendant(
+    floatingLiteral(unless(equals(0.0)), unless(equals(1.0)))))))
+
+// 8. Ternary operators producing FP results in decisions (review lead).
+match ifStmt(hasCondition(expr(hasDescendant(
+    conditionalOperator(hasTrueExpression(expr(hasType(realFloatingPointType))))))))

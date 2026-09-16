@@ -1,3 +1,5 @@
+# Forest Fire Coverage — Airplane Strip Visibility Problem
+
 Assignement
 
 
@@ -7,7 +9,7 @@ A message has been received about a possible forest fire in a given square. For 
 It is known that from the airplane, a strip of forest is visible with boundaries located at 50 km to the right and left of the line on the Earth's surface over which the airplane flies
 (see the diagram). Points located exactly 50 km from this line are still visible.
 
-![Task 1 diagram](task1-pic.jpg)
+![Task 1 diagram](assets/task1-pic.jpg)
 The report from each airplane contained information about two distinct points (x0, y0) and (x1, y1) where the airplane entered the given square and exited it, respectively.
 Between these points, the airplane moved strictly in a straight line.
 
@@ -51,3 +53,29 @@ The program shall print to OUTPUT the word "ERROR" in case if input data is inco
 ```
 92.59 41
 ```
+
+---
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [PROJECT_PLAN.md](PROJECT_PLAN.md) | Full development plan: requirements & derived requirements (FR-x, DR-x), architecture (A-1/A-2 decisions), algorithms, verification strategy (§9), traceability matrix, DO-330-style process guarantees |
+| [BUILD_RECORD.md](BUILD_RECORD.md) | Pinned toolchain & flags (DO-330 §8.2 mindset), how to run every verification target, structural coverage results, Gherkin/BDD scenario report with coverage images |
+| [assets/](assets/) | Problem diagrams (`task1-pic.jpg`, `pic1..pic8` renders used by the plan) and Gherkin coverage images (`cucumber/*.png`, referenced by the report in BUILD_RECORD.md) |
+
+### Quick start
+
+```bash
+make all          # build the graded binary (build/forest)
+make test         # unit tests (TC-U01..U22) + acceptance fixtures (TC-01..TC-17)
+make cucumber     # Gherkin suite: 55 scenarios, PNG coverage images, timing table
+make coverage     # gcov structural coverage (merged fixtures + unit tests)
+make sanitize     # ASan+UBSan over all fixtures
+make oracle       # randomized differential testing vs independent Python oracle
+make timing       # N=100 stress wall-time / peak-RSS measurement
+make gherkin-report  # cucumber run + tracked images + BUILD_RECORD.md report
+```
+
+Reports land in `build/reports/` and `build/cucumber/` (see BUILD_RECORD.md for
+the checked-in equivalents).

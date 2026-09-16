@@ -1,0 +1,22 @@
+---
+# clang-tidy config — Forest Fire (Task 1)
+# Checks chosen for DO-330/C-style assurance value: bounds, FP, readability of
+# decisions. bugprone-bool-pointer-implicit-conversion etc. omitted where noisy.
+Checks: >
+  bugprone-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  misc-*,
+  clang-analyzer-*,
+  -bugprone-easily-swappable-parameters,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-function-cognitive-complexity,
+  -readability-else-after-return,
+  -misc-include-cleaner,
+  -bugprone-exception-escape,
+  -readability-uppercase-literal-suffix
+WarningsAsErrors: ''
+HeaderFilterRegex: 'src/.*'
+FormatStyle: file

@@ -1,0 +1,21 @@
+---
+# clang-format config — Forest Fire (Task 1)
+# Style: LLVM baseline, 100 cols, pointers right (project convention `double *p`).
+BasedOnStyle: LLVM
+ColumnLimit: 100
+IndentWidth: 4
+UseTab: Never
+PointerAlignment: Right
+DerivePointerAlignment: false
+AccessModifierOffset: -4
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+BreakBeforeBraces: Attach
+IncludeBlocks: Preserve
+SortIncludes: CaseInsensitive
+AlignConsecutiveMacros: Consecutive
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignTrailingComments: true
+SpacesBeforeTrailingComments: 2

@@ -24,6 +24,7 @@ Usage:
 import argparse
 import math
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -50,12 +51,13 @@ class Step:
 
 
 class Scenario:
-    def __init__(self, feature, name, tags, steps, examples):
+    def __init__(self, feature, name, tags, steps, examples, row=None):
         self.feature = feature
         self.name = name
         self.tags = tags
         self.steps = steps          # [Step] with <placeholder> text for outlines
         self.examples = examples    # [] of dict, empty for plain scenarios
+        self.row = row              # raw example dict (outline instances)
 
 
 def parse_feature(path):
@@ -121,7 +123,7 @@ def parse_feature(path):
                     name = f'{sc["name"]} [example {i}]'
                     scenarios.append(Scenario(feature["name"], name,
                                               feature["tags"] + sc["tags"],
-                                              steps, []))
+                                              steps, [], row=row))
     return scenarios
 
 
@@ -494,7 +496,7 @@ def run_scenario(sc, args, idx):
                  f"({ctx.point[0]:.2f}, {ctx.point[1]:.2f})")
     return {
         "feature": sc.feature, "scenario": sc.name, "result": result,
-        "kind": ctx.kind, "reported": shown,
+        "kind": ctx.kind, "reported": shown, "row": sc.row,
         "dmin": ctx.dmin, "run_ms": None if ctx.elapsed is None
         else ctx.elapsed * 1000.0, "wall_ms": wall * 1000.0,
         "L": ctx.L, "N": len(ctx.flights), "image": img_rel,
@@ -557,6 +559,9 @@ def main():
     ap.add_argument("--tags", default=None,
                     help="only run scenarios carrying this tag, e.g. @smoke")
     ap.add_argument("--no-images", action="store_true")
+    ap.add_argument("--images-dir", default=None,
+                    help="also copy rendered PNGs here (relative to cwd), "
+                         "e.g. assets/cucumber")
     args = ap.parse_args()
 
     paths = sorted(Path(args.features).glob("*.feature"))
@@ -581,6 +586,17 @@ def main():
     print_table(rows)
     md = Path(args.outdir) / "timing.md"
     save_markdown(rows, md, total)
+
+    # Optional tracked copy of the rendered images (e.g. assets/cucumber).
+    if args.images_dir and not args.no_images:
+        dst = Path(args.images_dir)
+        dst.mkdir(parents=True, exist_ok=True)
+        for r in rows:
+            src = Path(args.outdir) / r["image"] if r["image"] else None
+            if src and src.exists():
+                shutil.copy2(src, dst / src.name)
+        print(f"images copied to {dst}/")
+
     n_fail = sum(r["result"] != "PASS" for r in rows)
     print(f"\n{len(rows) - n_fail}/{len(rows)} scenarios passed "
           f"in {total:.2f} s  (report: {md})")

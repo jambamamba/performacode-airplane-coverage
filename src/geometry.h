@@ -1,6 +1,6 @@
 #pragma once
 // geometry.h — line representation, normalization, clipping, intersection.
-// FR-04..FR-07 (project-plan.md §3.1); formulas per §5.4.
+// FR-04..FR-07 (PROJECT_PLAN.md §3.1); formulas per §5.4.
 
 #include <cmath>
 #include <optional>

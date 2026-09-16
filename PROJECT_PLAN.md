@@ -64,9 +64,9 @@ The solution must be *exact* (no sampling), *fast* (millisecond-scale against a
 10 s limit) and *developed and verified with DO-178C / DO-330 discipline* as a
 training exercise for the PerformaCode RTOS kernel engineer role.
 
-### 1.1 Why the two naive approaches from `gemini.md` were rejected
+### 1.1 Why the two naive approaches from the initial brainstorm were rejected
 
-| Approach (from `gemini.md`) | Verdict | Reason |
+| Approach (from the initial brainstorm) | Verdict | Reason |
 |---|---|---|
 | Grid sampling at 0.5 km, refine boundaries | ❌ Rejected | Sampling can never *prove* coverage. Uncovered slivers between two nearly-parallel strip boundaries (e.g. angle 1e-6 rad) can be thinner than any grid step while every sampled point is covered → false `OK`. |
 | Check only candidate vertices (band-boundary intersections) | ❌ Rejected | The claim "an uncovered region must contain an uncovered vertex" is false: every vertex of an uncovered cell lies *on* two strip boundaries, i.e. at exactly 50 km → **covered** by definition (boundary points are visible). Counterexample: three flights forming a triangle of inradius 80 km centered in an L = 1000 square — the inner uncovered triangle (inradius 30 km) has *all* vertices covered, yet is entirely unviewed. |
@@ -261,7 +261,7 @@ PNG renders of the vector originals (the `.svg` files stay in `assets/` for edit
 |---|---------|---------------|
 | 1 | <img src="assets/pic1-one-flight.png" width="360" alt="What one airplane sees"> | A flight is just a straight line; the plane sees a 100 km-wide band around it. Points at exactly 50 km count as seen. |
 | 2 | <img src="assets/pic2-two-flights-gap.png" width="360" alt="Two flights, one unseen patch"> | Two bands cover most of the square but miss the top-left corner — any point in the patch is a valid answer. |
-| 3 | <img src="assets/pic3-why-not-vertices.png" width="360" alt="The trap that kills naive solutions"> | Three flights leave a triangular hole whose three **corners all lie exactly on band edges** — so the corners themselves count as SEEN. Programs that only test region corners (the approach rejected from `gemini.md`) answer `OK` here. Wrong. |
+| 3 | <img src="assets/pic3-why-not-vertices.png" width="360" alt="The trap that kills naive solutions"> | Three flights leave a triangular hole whose three **corners all lie exactly on band edges** — so the corners themselves count as SEEN. Programs that only test region corners (the rejected vertex-only approach, §1.1) answer `OK` here. Wrong. |
 | 4 | <img src="assets/pic4-nudge.png" width="360" alt="The key trick: poke beside every fence"> | The boundary itself always tests "seen" (it is exactly 50 km from a plane). So we test a hair to the side — on **both** sides. |
 | 5 | <img src="assets/pic5-edge-pieces.png" width="360" alt="All fences, chopped and poked"> | Every fence is cut into pieces at crossings; each piece's midpoint gets two pokes. Here one poke lands in the hole → answer found. |
 | 6 | <img src="assets/pic6-flow.png" width="360" alt="Flowchart"> | The whole program, start to finish. |
@@ -320,8 +320,8 @@ instead of testing the fence.
 
 And why not the obvious cheaper ideas?
 
-* **"Just test the corners of every region"** (the rejected `gemini.md`
-  approach): Fig. 3 is the counterexample — every corner of the hole sits on
+* **"Just test the corners of every region"** (the rejected vertex-only
+  approach of §1.1): Fig. 3 is the counterexample — every corner of the hole sits on
   two band edges, at exactly 50 km, so it tests as *seen* even though the hole
   is real.
 * **"Test points on a fine grid"** (the other rejected approach): a hole
@@ -578,7 +578,7 @@ DO-178C "isolate what can change" design practice.
 
 > This is a training exercise, not an airborne product — the plan *adopts* the
 > artifacts and rigor of DO-178C at a scale appropriate to the task, and maps
-> the work explicitly onto the DAL framework from `interview_rtos_qa.md`.
+> the work explicitly onto the DAL framework (hazard-based allocation, §8.1).
 
 ### 8.1 DAL mapping and coverage targets
 
@@ -799,7 +799,7 @@ Milestones: **M1** FR freeze (09-16) · **M2** design review passed (09-18) ·
 ```
 performacode-airplane-coverage/
 ├── README.md                 # task statement
-├── project-plan.md           # this document
+├── PROJECT_PLAN.md             # this document
 ├── src/
 │   ├── main.cpp              # wiring only (FR-01..FR-12 dispatch)
 │   ├── input.cpp/.h          # InputReader
