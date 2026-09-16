@@ -1,6 +1,6 @@
 # Makefile — Forest Fire (Task 1) build and verification targets.
-# Toolchain is pinned in BUILD_RECORD.md; a compiler bump is a
-# re-verification event (PROJECT_PLAN.md §8.2).
+# Toolchain is pinned in docs/BUILD_RECORD.md; a compiler bump is a
+# re-verification event (docs/PROJECT_PLAN.md §8.2).
 
 CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra -Wpedantic
@@ -16,7 +16,7 @@ BIN     := build/forest
 BIN_SAN := build/forest.san
 REPORTS := build/reports
 
-# Static-analysis toolchain (see BUILD_RECORD.md §4). Versions are pinned in
+# Static-analysis toolchain (see docs/BUILD_RECORD.md §4). Versions are pinned in
 # the report headers; a tool bump is a re-review event, not a re-verification
 # event (they are development tools, not part of the graded artifact).
 CLANG_FORMAT ?= $(HOME)/.local/bin/clang-format
@@ -147,7 +147,7 @@ cucumber: $(BIN)
 cucumber-smoke: $(BIN)
 	python3 tools/cucumber.py --bin $(BIN) --tags @timing --no-images
 
-# Full Gherkin run + tracked images + BUILD_RECORD.md report regeneration.
+# Full Gherkin run + tracked images + docs/BUILD_RECORD.md report regeneration.
 gherkin-report: $(BIN)
 	python3 tools/cucumber.py --bin $(BIN) --images-dir assets/cucumber
 	python3 tools/gherkin_report.py

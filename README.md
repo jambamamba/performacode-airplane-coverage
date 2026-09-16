@@ -1,81 +1,112 @@
-# Forest Fire Coverage — Airplane Strip Visibility Problem
+# Forest Fire Coverage — Task 1
 
-Assignement
+Determine whether N airplanes collectively viewed an entire square forest, and
+if not, name one unviewed point. This repository contains a fully verified C++17
+solution plus the complete engineering record behind it.
 
+**Start here → [ASSIGNMENT.md](ASSIGNMENT.md)** is the original task statement.
 
-### Task 1: Forest Fire
+## The problem in one paragraph
 
-A message has been received about a possible forest fire in a given square. For locating the fire, N airplanes were dispatched. However, none of the crews detected a fire.
-It is known that from the airplane, a strip of forest is visible with boundaries located at 50 km to the right and left of the line on the Earth's surface over which the airplane flies
-(see the diagram). Points located exactly 50 km from this line are still visible.
+A square forest `[0, L] × [0, L]` (L ≤ 1000 km) was scanned by N ≤ 100
+airplanes. Each flew a straight line between an entry and an exit point and
+sees every point within 50 km perpendicular distance of its flight line. The
+program reads `INPUT` (L, N, then N flights as `x0 y0 x1 y1`) and writes
+`OUTPUT`: `OK` if the whole square was viewed, otherwise the coordinates of one
+unviewed point inside or on the square (accurate to 1 m); `ERROR` for invalid
+input. Limits: 10 s wall time, 4 GB RAM, correct termination, C/C++ standard
+library only.
 
-![Task 1 diagram](assets/task1-pic.jpg)
-The report from each airplane contained information about two distinct points (x0, y0) and (x1, y1) where the airplane entered the given square and exited it, respectively.
-Between these points, the airplane moved strictly in a straight line.
+## How AI was used
 
-### Requirements
+This solution was developed **with an AI pair-programmer (Codebuff)** working
+interactively with the developer:
 
-Write a program that determines whether the entire given square of forest was viewed by the airplanes. 
-If not, the program should find the coordinates of some point lying inside or on the border of the square that was not covered by any of the viewed strips.
-The program execution time is limited to 10 seconds.
-RAM consumption is limited to 4GB.
-The program must terminate correctly.
-The program must be written in C or C++. Developer must use only standard library.
+- **Design discussion** — the candidate algorithms (grid sampling, incremental
+  uncovered-polygon set, arrangement/"fence" scan) were debated with explicit
+  pros and cons, worst-case complexity, and numerical-robustness analysis; the
+  trade-off review and the final selection are recorded in
+  [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md) (§5.1, §5.5, §5.6).
+- **Implementation** — the AI wrote the C++ sources, the test suite, the
+  verification tooling (Python oracle, Gherkin runner, renderers), and the
+  Make targets, with the developer reviewing and steering at every step.
+- **Verification** — every layer was executed and re-checked by the AI:
+  unit and acceptance tests, ASan/UBSan, gcov coverage, randomized
+  differential testing against an independently written oracle, and a
+  55-scenario Gherkin suite with rendered coverage images. Results are pinned
+  in [docs/BUILD_RECORD.md](docs/BUILD_RECORD.md).
 
-### Input Data
+The AI also documented its own work: edge cases, defensive branches that
+cannot be covered (with justification), and re-verification after refactors
+are all written up in the documents below rather than left in chat logs.
 
-The input file named INPUT consists of N + 2 lines.
-The first line contains a natural number L - the size of the given forest square in kilometers (0 < L <= 1000).
-The second line contains a natural number N (1 <= N <= 100) - the number of airplanes.
-Each of the following N lines contains a report from an airplane - four real coordinates x0, y0, x1, y1.
-The coordinates are specified in kilometers.
-The sides of the forest square are parallel to the coordinate axes, its bottom-left corner is located at the point with coordinates (0, 0), and the top-right corner is at the point (L, L).
+## How the solution was chosen
 
-### Output Data
+Three algorithm families were compared before any code was written:
 
-The output file named OUTPUT shall contain one line.
-If the given square has been completely viewed, this line should consist of the word "OK" written in uppercase.
-Otherwise, this line should contain the coordinates x and y of some point that did not fall into any of the viewed strips, separated by a space.
-The coordinates should be printed in kilometers with an error not exceeding one meter.
-The program shall print to OUTPUT the word "ERROR" in case if input data is incorrect.
-
-### Example Input File
-
-```
-120
-12
-17.4 23 33.27 99.861
-...
-```
-
-### Example Output File
-
-```
-92.59 41
-```
-
----
-
-## Documentation
-
-| Document | Contents |
+| Candidate | Verdict |
 |---|---|
-| [PROJECT_PLAN.md](PROJECT_PLAN.md) | Full development plan: requirements & derived requirements (FR-x, DR-x), architecture (A-1/A-2 decisions), algorithms, verification strategy (§9), traceability matrix, DO-330-style process guarantees |
-| [BUILD_RECORD.md](BUILD_RECORD.md) | Pinned toolchain & flags (DO-330 §8.2 mindset), how to run every verification target, structural coverage results, Gherkin/BDD scenario report with coverage images |
-| [assets/](assets/) | Problem diagrams (`task1-pic.jpg`, `pic1..pic8` renders used by the plan) and Gherkin coverage images (`cucumber/*.png`, referenced by the report in BUILD_RECORD.md) |
+| Grid sampling of candidate points | Rejected: can miss narrow holes; no proof of coverage |
+| Incremental uncovered-polygon set (Boolean subtraction) | Correct but rejected: pieces can double every pass (2ⁿ worst case), sliver robustness, no early exit (§5.5) |
+| **Fence-and-poke arrangement scan (selected)** | Exact, O(M²) ≈ 41.6k pieces at N=100, ~0.1 s, stateless, early-exit (§5.1, §5.6) |
 
-### Quick start
+The full reasoning — including why the selected algorithm cannot suffer the
+exponential blow-up of the polygon method — is in the plan (§5.5–§5.6).
+
+## Build and run
 
 ```bash
-make all          # build the graded binary (build/forest)
-make test         # unit tests (TC-U01..U22) + acceptance fixtures (TC-01..TC-17)
-make cucumber     # Gherkin suite: 55 scenarios, PNG coverage images, timing table
-make coverage     # gcov structural coverage (merged fixtures + unit tests)
-make sanitize     # ASan+UBSan over all fixtures
-make oracle       # randomized differential testing vs independent Python oracle
-make timing       # N=100 stress wall-time / peak-RSS measurement
-make gherkin-report  # cucumber run + tracked images + BUILD_RECORD.md report
+make all            # build the graded binary: build/forest
+./build/forest      # reads ./INPUT, writes ./OUTPUT
 ```
 
-Reports land in `build/reports/` and `build/cucumber/` (see BUILD_RECORD.md for
-the checked-in equivalents).
+Requires a C++17 compiler (toolchain pinned in docs/BUILD_RECORD.md).
+
+### Verify everything
+
+```bash
+make test            # unit tests (TC-U01..U22) + acceptance fixtures (TC-01..TC-17)
+make sanitize        # ASan + UBSan over all fixtures
+make coverage        # gcov structural coverage (merged fixtures + unit tests)
+make oracle          # randomized differential testing vs independent Python oracle
+make timing          # N=100 stress wall-time / peak-RSS
+make cucumber        # Gherkin suite: 55 scenarios, PNG coverage images, timing table
+make gherkin-report  # cucumber run + tracked images + BUILD_RECORD report section
+```
+
+Reports land in `build/reports/` and `build/cucumber/`; the tracked,
+checked-in equivalents live in `docs/BUILD_RECORD.md` and `assets/cucumber/`.
+
+## Suggested reading order for reviewers
+
+1. **[ASSIGNMENT.md](ASSIGNMENT.md)** — the task being solved (you are solving
+   it for a grader; start here to know the rules).
+2. **[docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md)** — requirements, decisions
+   A-1..A-5, algorithm design with figures, alternative-algorithms analysis
+   (§5.5/§5.6), numerical-robustness contract (§6), test plan (§9),
+   DO-178C/DO-330 alignment (§8), traceability matrix.
+3. **`src/`** — the implementation: `input.cpp` → `geometry.cpp` →
+   `scanner.cpp` → `output.cpp` → `run.cpp` (data-flow order); each file's
+   header comment ties it to plan sections.
+4. **[docs/BUILD_RECORD.md](docs/BUILD_RECORD.md)** — pinned toolchain, how to
+   reproduce every check, structural-coverage results (with justifications for
+   the few non-covered defensive lines), the full Gherkin scenario report with
+   per-scenario timings and coverage images.
+5. **`tests/` and `tools/`** — unit tests (`tests/test_unit.cpp`), acceptance
+   fixtures (`tests/fixtures/`), Gherkin features (`tests/features/`), the
+   independent Python oracle and report generators (`tools/`).
+6. **[assets/](assets/)** — the task diagram, algorithm figures used by the
+   plan, and the rendered coverage images (`assets/cucumber/`) referenced by
+   the Gherkin report.
+
+## Repository layout
+
+```
+ASSIGNMENT.md            this task's statement (original brief)
+docs/                    PROJECT_PLAN.md, BUILD_RECORD.md
+src/                     C++17 sources (input, geometry, scanner, output, run)
+tests/                   unit tests, acceptance fixtures, Gherkin features
+tools/                   Python oracle, Gherkin runner, report generators
+assets/                  diagrams + tracked coverage images (cucumber/*.png)
+Makefile                 build + all verification targets
+```

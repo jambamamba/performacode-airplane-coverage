@@ -260,12 +260,12 @@ PNG renders of the vector originals (the `.svg` files stay in `assets/` for edit
 
 | # | Picture | What it shows |
 |---|---------|---------------|
-| 1 | <img src="assets/pic1-one-flight.png" width="360" alt="What one airplane sees"> | A flight is just a straight line; the plane sees a 100 km-wide band around it. Points at exactly 50 km count as seen. |
-| 2 | <img src="assets/pic2-two-flights-gap.png" width="360" alt="Two flights, one unseen patch"> | Two bands cover most of the square but miss the top-left corner — any point in the patch is a valid answer. |
-| 3 | <img src="assets/pic3-why-not-vertices.png" width="360" alt="The trap that kills naive solutions"> | Three flights leave a triangular hole whose three **corners all lie exactly on band edges** — so the corners themselves count as SEEN. Programs that only test region corners (the rejected vertex-only approach, §1.1) answer `OK` here. Wrong. |
-| 4 | <img src="assets/pic4-nudge.png" width="360" alt="The key trick: poke beside every fence"> | The boundary itself always tests "seen" (it is exactly 50 km from a plane). So we test a hair to the side — on **both** sides. |
-| 5 | <img src="assets/pic5-edge-pieces.png" width="360" alt="All fences, chopped and poked"> | Every fence is cut into pieces at crossings; each piece's midpoint gets two pokes. Here one poke lands in the hole → answer found. |
-| 6 | <img src="assets/pic6-flow.png" width="360" alt="Flowchart"> | The whole program, start to finish. |
+| 1 | <img src="../assets/pic1-one-flight.png" width="360" alt="What one airplane sees"> | A flight is just a straight line; the plane sees a 100 km-wide band around it. Points at exactly 50 km count as seen. |
+| 2 | <img src="../assets/pic2-two-flights-gap.png" width="360" alt="Two flights, one unseen patch"> | Two bands cover most of the square but miss the top-left corner — any point in the patch is a valid answer. |
+| 3 | <img src="../assets/pic3-why-not-vertices.png" width="360" alt="The trap that kills naive solutions"> | Three flights leave a triangular hole whose three **corners all lie exactly on band edges** — so the corners themselves count as SEEN. Programs that only test region corners (the rejected vertex-only approach, §1.1) answer `OK` here. Wrong. |
+| 4 | <img src="../assets/pic4-nudge.png" width="360" alt="The key trick: poke beside every fence"> | The boundary itself always tests "seen" (it is exactly 50 km from a plane). So we test a hair to the side — on **both** sides. |
+| 5 | <img src="../assets/pic5-edge-pieces.png" width="360" alt="All fences, chopped and poked"> | Every fence is cut into pieces at crossings; each piece's midpoint gets two pokes. Here one poke lands in the hole → answer found. |
+| 6 | <img src="../assets/pic6-flow.png" width="360" alt="Flowchart"> | The whole program, start to finish. |
 
 #### The algorithm as a story
 
@@ -467,8 +467,8 @@ at every step. With N = 100 the polygon count stays small.
 
 | Figure | What it shows |
 |---|---|
-| <img src="assets/pic7-uncovered-set.png" width="420" alt="Uncovered-set algorithm panel by plane, with pros and cons"> | **Fig. 7 — the whole algorithm, panel by plane.** Start with U = the whole square; subtract each plane's band; pieces multiply (P1); an empty set at the end means `OK`, else print any surviving piece's vertex. The green/red boxes summarize where the method wins and where it loses. |
-| <img src="assets/pic8-band-subtraction.png" width="420" alt="One band cut through one convex piece"> | **Fig. 8 — the atomic step.** One band through one convex piece = one straight cut → at most two convex remainders. Old vertices are only ever *dropped*, never moved — the source of the method's one decisive advantage, and of P2's danger when an implementation skips splitting at the band edges. |
+| <img src="../assets/pic7-uncovered-set.png" width="420" alt="Uncovered-set algorithm panel by plane, with pros and cons"> | **Fig. 7 — the whole algorithm, panel by plane.** Start with U = the whole square; subtract each plane's band; pieces multiply (P1); an empty set at the end means `OK`, else print any surviving piece's vertex. The green/red boxes summarize where the method wins and where it loses. |
+| <img src="../assets/pic8-band-subtraction.png" width="420" alt="One band cut through one convex piece"> | **Fig. 8 — the atomic step.** One band through one convex piece = one straight cut → at most two convex remainders. Old vertices are only ever *dropped*, never moved — the source of the method's one decisive advantage, and of P2's danger when an implementation skips splitting at the band edges. |
 
 The set still loses to the
 fence-walk (§5.1) on four practical grounds:
@@ -897,8 +897,11 @@ Milestones: **M1** FR freeze (09-16) · **M2** design review passed (09-18) ·
 
 ```
 performacode-airplane-coverage/
-├── README.md                 # task statement
-├── PROJECT_PLAN.md             # this document
+├── README.md                 # solution overview, AI-use note, reading order
+├── ASSIGNMENT.md             # original task statement (this brief)
+├── docs/
+│   ├── PROJECT_PLAN.md       # this document
+│   └── BUILD_RECORD.md       # pinned toolchain + flags (DO-330 §8.2)
 ├── src/
 │   ├── main.cpp              # wiring only (FR-01..FR-12 dispatch)
 │   ├── input.cpp/.h          # InputReader
@@ -914,9 +917,11 @@ performacode-airplane-coverage/
 ├── tools/
 │   ├── verify_random.py      # independent oracle (not shipped)
 │   ├── coverage_summary.awk  # per-file line-coverage summary for make coverage
-│   └── cucumber.py           # stdlib Gherkin runner + oracle checks + PNG rendering
+│   ├── cucumber.py           # stdlib Gherkin runner + oracle checks + PNG rendering
+│   └── gherkin_report.py     # splices the Gherkin report into BUILD_RECORD.md
+├── assets/                   # task diagram, plan figures, tracked cucumber images
 ├── Makefile                  # all, test, coverage, sanitize, timing, cucumber
-└── BUILD_RECORD.md           # pinned toolchain + flags (DO-330 §8.2)
+└── .clang-format/.clang-tidy # analysis configs (see Makefile analysis targets)
 ```
 
 Single `make all` produces the graded binary; the submission translation units

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """gherkin_report.py — turn a cucumber.py timing report into the Gherkin
-chapter of BUILD_RECORD.md.
+chapter of docs/BUILD_RECORD.md.
 
 Reads  build/cucumber/timing.md  (written by tools/cucumber.py) and the
 feature files it was generated from, then regenerates the section of
-BUILD_RECORD.md between
+docs/BUILD_RECORD.md between
 
     <!-- GHERKIN-REPORT:BEGIN -->
     ...
@@ -14,13 +14,14 @@ The report contains, per feature file: every scenario, its example rows
 (the x0/y0/x1/y1 values actually exercised), the outcome, timing, and a
 relative link to the rendered coverage image (assets/cucumber/*.png).
 
-Usage:  python3 tools/gherkin_report.py [--record BUILD_RECORD.md]
+Usage:  python3 tools/gherkin_report.py [--record docs/BUILD_RECORD.md]
 Regenerating requires a prior
         python3 tools/cucumber.py --images-dir assets/cucumber
 (which `make gherkin-report` does in one step).
 """
 
 import argparse
+import os
 import re
 import sys
 from pathlib import Path
@@ -81,7 +82,9 @@ def read_features(features_dir):
     return features
 
 
-def build_section(rows, features_dir, summary_line):
+def build_section(rows, features_dir, summary_line, img_link=IMG_DIR):
+    """img_link: the IMG_DIR path as seen from the record file's directory
+    (e.g. ../assets/cucumber when the record lives in docs/)."""
     features = read_features(features_dir)
     out = []
     out.append("## Gherkin (BDD) scenario report — `make cucumber`")
@@ -139,7 +142,7 @@ def build_section(rows, features_dir, summary_line):
                     out.append("")
             first_img = srows[0]["image"]
             if first_img:
-                out.append(f"![coverage: {key}]({IMG_DIR}/"
+                out.append(f"![coverage: {key}]({img_link}/"
                            f"{Path(first_img).name})")
                 out.append("")
             out.append("| # | Result | Reported | dmin (km) | run ms | wall ms "
@@ -151,7 +154,7 @@ def build_section(rows, features_dir, summary_line):
                 if img:
                     name = Path(img).name
                     img_cell = (f"[{name.split('_', 1)[0]}]"
-                                f"({IMG_DIR}/{name})")
+                                f"({img_link}/{name})")
                 else:
                     img_cell = "-"
                 out.append(f"| {idx} | {r['result']} | {r['reported']} | "
@@ -165,7 +168,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--timing", default="build/cucumber/timing.md")
     ap.add_argument("--features", default="tests/features")
-    ap.add_argument("--record", default="BUILD_RECORD.md")
+    ap.add_argument("--record", default="docs/BUILD_RECORD.md")
     args = ap.parse_args()
 
     timing = Path(args.timing)
@@ -176,7 +179,11 @@ def main():
     summary_line = head[2].strip() if len(head) > 2 else "?"
 
     rows = read_rows(timing)
-    section = build_section(rows, args.features, summary_line)
+    # Image links inside the record must be relative to the record's own
+    # directory: ../assets/cucumber for docs/BUILD_RECORD.md.
+    record_path = Path(args.record)
+    img_link = os.path.relpath(IMG_DIR, str(record_path.parent))
+    section = build_section(rows, args.features, summary_line, img_link=img_link)
 
     record = Path(args.record)
     text = record.read_text()
