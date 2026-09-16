@@ -65,7 +65,7 @@ Requires a C++17 compiler (toolchain pinned in docs/BUILD_RECORD.md).
 ### Verify everything
 
 ```bash
-make test            # unit tests (TC-U01..U22) + acceptance fixtures (TC-01..TC-17)
+make test            # unit tests (TC-U01..U22) + acceptance fixtures (TC-01..TC-17, TC-20)
 make sanitize        # ASan + UBSan over all fixtures
 make coverage        # gcov structural coverage (merged fixtures + unit tests)
 make oracle          # randomized differential testing vs independent Python oracle

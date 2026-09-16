@@ -69,8 +69,8 @@ re-verification section below).
 |---|---|
 | Warning-free build (`-Wall -Wextra -Wpedantic`) | PASS (0 warnings) |
 | Unit tests TC-U01..U22 | PASS (22/22) |
-| Acceptance fixtures TC-01..TC-17 (+TC-10 synthesized) | PASS (18/18, exit 0, exact OUTPUT match) |
-| Oracle validation of all fixture outputs | PASS (18/18) |
+| Acceptance fixtures TC-01..TC-17, TC-20 (+TC-10 synthesized) | PASS (20/20, exit 0, exact OUTPUT match) |
+| Oracle validation of all fixture outputs | PASS (20/20) |
 | Randomized differential testing (`make oracle`, 50 trials, seed 20260915) | PASS (50/50) |
 | ASan + UBSan over all fixtures | PASS (0 findings) |
 | TC-04/TC-17 timing (N=100 stress) | PASS (0.10 s wall vs 10 s limit) |
@@ -90,7 +90,7 @@ computation sequence. Full battery re-run on the refactored code:
 |---|---|
 | Warning-free rebuild | PASS (0 warnings) |
 | Unit tests TC-U01..U22 | PASS (22/22) |
-| Acceptance fixtures | PASS (18/18, exact OUTPUT match) |
+| Acceptance fixtures | PASS (20/20, exact OUTPUT match; TC-20 added 2026-09-16) |
 | ASan + UBSan over all fixtures | PASS (0 findings) |
 | Randomized differential testing (`make oracle`) | PASS (50/50) |
 | TC-04/TC-17 timing | PASS — 0.10 s wall, 7.4–7.7 MB RSS (unchanged) |
@@ -106,7 +106,7 @@ time while giving each phase a reviewable, individually testable unit.
 <!-- GHERKIN-REPORT:BEGIN -->
 ## Gherkin (BDD) scenario report — `make cucumber`
 
-Generated from `tests/features/*.feature` by `tools/cucumber.py`; last full run: **55/55 scenarios passed, total 3.21 s**. Every scenario executes the graded binary in a sandbox and its output is independently re-verified by the Python oracle (`tools/verify_random.py`) before the expectation is asserted. A coverage image is rendered per scenario into `assets/cucumber/` (green = viewed band, red = unviewed, black = flight line, dashed gray = ±50 km band edges, ✈ = plane at the segment midpoint, blue dot = reported uncovered point); the first image of each outline is embedded, the rest are linked from the result tables.
+Generated from `tests/features/*.feature` by `tools/cucumber.py`; last full run: **55/55 scenarios passed, total 3.17 s**. Every scenario executes the graded binary in a sandbox and its output is independently re-verified by the Python oracle (`tools/verify_random.py`) before the expectation is asserted. A coverage image is rendered per scenario into `assets/cucumber/` (green = viewed band, red = unviewed, black = flight line, dashed gray = ±50 km band edges, ✈ = plane at the segment midpoint, blue dot = reported uncovered point); the first image of each outline is embedded, the rest are linked from the result tables.
 
 ### Feature file: `tests/features/multi_flight.feature` (16 scenarios)
 
@@ -130,12 +130,12 @@ Example rows exercised (from the feature source):
 
 | # | Result | Reported | dmin (km) | run ms | wall ms | Coverage image |
 |---|---|---|---|---|---|---|
-| 1 | PASS | OK | - | 2.0 | 26.9 | [001](../assets/cucumber/001_multi-flight_interactions_a_flight_band_that_already_covers_the_whole_.png) |
-| 2 | PASS | OK | - | 2.2 | 27.0 | [002](../assets/cucumber/002_multi-flight_interactions_a_flight_band_that_already_covers_the_whole_.png) |
-| 3 | PASS | OK | - | 2.2 | 25.3 | [003](../assets/cucumber/003_multi-flight_interactions_a_flight_band_that_already_covers_the_whole_.png) |
-| 4 | PASS | OK | - | 1.8 | 28.2 | [004](../assets/cucumber/004_multi-flight_interactions_a_flight_band_that_already_covers_the_whole_.png) |
-| 5 | PASS | OK | - | 2.0 | 24.5 | [005](../assets/cucumber/005_multi-flight_interactions_a_flight_band_that_already_covers_the_whole_.png) |
-| 6 | PASS | OK | - | 1.9 | 28.9 | [006](../assets/cucumber/006_multi-flight_interactions_a_flight_band_that_already_covers_the_whole_.png) |
+| 1 | PASS | OK | - | 2.1 | 24.5 | [001](../assets/cucumber/001_multi-flight_interactions_a_flight_band_that_already_covers_the_whole_.png) |
+| 2 | PASS | OK | - | 2.1 | 26.7 | [002](../assets/cucumber/002_multi-flight_interactions_a_flight_band_that_already_covers_the_whole_.png) |
+| 3 | PASS | OK | - | 1.7 | 28.6 | [003](../assets/cucumber/003_multi-flight_interactions_a_flight_band_that_already_covers_the_whole_.png) |
+| 4 | PASS | OK | - | 2.0 | 25.8 | [004](../assets/cucumber/004_multi-flight_interactions_a_flight_band_that_already_covers_the_whole_.png) |
+| 5 | PASS | OK | - | 1.8 | 39.6 | [005](../assets/cucumber/005_multi-flight_interactions_a_flight_band_that_already_covers_the_whole_.png) |
+| 6 | PASS | OK | - | 2.0 | 30.1 | [006](../assets/cucumber/006_multi-flight_interactions_a_flight_band_that_already_covers_the_whole_.png) |
 
 #### parallel pairs leave an uncovered strip
 
@@ -165,14 +165,14 @@ Example rows exercised (from the feature source):
 
 | # | Result | Reported | dmin (km) | run ms | wall ms | Coverage image |
 |---|---|---|---|---|---|---|
-| 7 | PASS | (50.00, 100.00) | 54.9999 | 1.9 | 2.3 | [007](../assets/cucumber/007_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
-| 8 | PASS | (50.00, 100.00) | 59.9999 | 2.1 | 2.5 | [008](../assets/cucumber/008_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
+| 7 | PASS | (50.00, 100.00) | 54.9999 | 2.0 | 2.3 | [007](../assets/cucumber/007_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
+| 8 | PASS | (50.00, 100.00) | 59.9999 | 1.8 | 2.1 | [008](../assets/cucumber/008_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
 | 9 | PASS | (50.00, 100.00) | 99.9999 | 2.1 | 2.4 | [009](../assets/cucumber/009_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
-| 10 | PASS | (50.00, 100.00) | 69.4999 | 2.0 | 2.3 | [010](../assets/cucumber/010_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
-| 11 | PASS | (50.00, 100.00) | 99.9999 | 1.9 | 2.2 | [011](../assets/cucumber/011_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
-| 12 | PASS | (100.00, 90.00) | 60.0000 | 2.1 | 2.4 | [012](../assets/cucumber/012_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
-| 13 | PASS | (100.00, 65.00) | 85.0000 | 2.0 | 2.3 | [013](../assets/cucumber/013_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
-| 14 | PASS | (100.00, 65.00) | 59.9999 | 1.9 | 2.2 | [014](../assets/cucumber/014_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
+| 10 | PASS | (50.00, 100.00) | 69.4999 | 1.9 | 2.3 | [010](../assets/cucumber/010_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
+| 11 | PASS | (50.00, 100.00) | 99.9999 | 2.0 | 2.3 | [011](../assets/cucumber/011_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
+| 12 | PASS | (100.00, 90.00) | 60.0000 | 1.9 | 2.2 | [012](../assets/cucumber/012_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
+| 13 | PASS | (100.00, 65.00) | 85.0000 | 1.8 | 2.1 | [013](../assets/cucumber/013_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
+| 14 | PASS | (100.00, 65.00) | 59.9999 | 2.1 | 2.4 | [014](../assets/cucumber/014_multi-flight_interactions_parallel_pairs_leave_an_uncovered_strip_exam.png) |
 
 #### three flights, corner survives all bands
 
@@ -190,8 +190,8 @@ Example rows exercised (from the feature source):
 
 | # | Result | Reported | dmin (km) | run ms | wall ms | Coverage image |
 |---|---|---|---|---|---|---|
-| 15 | PASS | (100.00, 90.00) | 60.0000 | 1.8 | 2.2 | [015](../assets/cucumber/015_multi-flight_interactions_three_flights_corner_survives_all_bands_exam.png) |
-| 16 | PASS | (100.00, 95.00) | 55.0000 | 1.8 | 2.1 | [016](../assets/cucumber/016_multi-flight_interactions_three_flights_corner_survives_all_bands_exam.png) |
+| 15 | PASS | (100.00, 90.00) | 60.0000 | 2.1 | 2.5 | [015](../assets/cucumber/015_multi-flight_interactions_three_flights_corner_survives_all_bands_exam.png) |
+| 16 | PASS | (100.00, 95.00) | 55.0000 | 1.9 | 2.1 | [016](../assets/cucumber/016_multi-flight_interactions_three_flights_corner_survives_all_bands_exam.png) |
 
 ### Feature file: `tests/features/single_flight.feature` (23 scenarios)
 
@@ -250,23 +250,23 @@ Example rows exercised (from the feature source):
 
 | # | Result | Reported | dmin (km) | run ms | wall ms | Coverage image |
 |---|---|---|---|---|---|---|
-| 17 | PASS | (0.00, 85.36) | 60.3553 | 2.0 | 2.3 | [017](../assets/cucumber/017_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 18 | PASS | (0.00, 14.64) | 60.3553 | 2.0 | 2.4 | [018](../assets/cucumber/018_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 19 | PASS | (0.00, 84.58) | 61.2488 | 1.9 | 2.2 | [019](../assets/cucumber/019_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 20 | PASS | (50.00, 100.00) | 77.8682 | 2.0 | 2.3 | [020](../assets/cucumber/020_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 21 | PASS | (0.00, 85.36) | 60.3553 | 1.6 | 1.9 | [021](../assets/cucumber/021_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 22 | PASS | (50.00, 0.00) | 89.9999 | 1.9 | 2.1 | [022](../assets/cucumber/022_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 23 | PASS | (2.38, 100.00) | 52.3635 | 1.8 | 2.1 | [023](../assets/cucumber/023_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 24 | PASS | (50.00, 100.00) | 79.9999 | 1.9 | 2.2 | [024](../assets/cucumber/024_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 25 | PASS | (0.74, 100.00) | 50.7420 | 2.2 | 2.5 | [025](../assets/cucumber/025_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 26 | PASS | (50.00, 100.00) | 99.9999 | 2.3 | 2.7 | [026](../assets/cucumber/026_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 27 | PASS | (50.00, 100.00) | 98.9999 | 1.7 | 1.9 | [027](../assets/cucumber/027_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 28 | PASS | (100.00, 50.00) | 99.9999 | 2.2 | 2.4 | [028](../assets/cucumber/028_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 29 | PASS | (50.00, 100.00) | 99.9999 | 2.0 | 2.4 | [029](../assets/cucumber/029_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 30 | PASS | (0.00, 85.36) | 60.3553 | 2.4 | 2.8 | [030](../assets/cucumber/030_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 31 | PASS | (0.00, 85.36) | 60.3553 | 1.7 | 2.0 | [031](../assets/cucumber/031_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 32 | PASS | (50.00, 100.00) | 159.9999 | 2.2 | 2.5 | [032](../assets/cucumber/032_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
-| 33 | PASS | (0.00, 50.00) | 199.9999 | 2.1 | 2.3 | [033](../assets/cucumber/033_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 17 | PASS | (0.00, 85.36) | 60.3553 | 2.1 | 2.4 | [017](../assets/cucumber/017_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 18 | PASS | (0.00, 14.64) | 60.3553 | 2.2 | 2.5 | [018](../assets/cucumber/018_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 19 | PASS | (0.00, 84.58) | 61.2488 | 1.6 | 1.9 | [019](../assets/cucumber/019_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 20 | PASS | (50.00, 100.00) | 77.8682 | 1.7 | 2.0 | [020](../assets/cucumber/020_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 21 | PASS | (0.00, 85.36) | 60.3553 | 1.8 | 2.2 | [021](../assets/cucumber/021_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 22 | PASS | (50.00, 0.00) | 89.9999 | 2.3 | 2.6 | [022](../assets/cucumber/022_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 23 | PASS | (2.38, 100.00) | 52.3635 | 2.5 | 2.9 | [023](../assets/cucumber/023_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 24 | PASS | (50.00, 100.00) | 79.9999 | 2.1 | 2.5 | [024](../assets/cucumber/024_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 25 | PASS | (0.74, 100.00) | 50.7420 | 1.8 | 2.1 | [025](../assets/cucumber/025_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 26 | PASS | (50.00, 100.00) | 99.9999 | 1.9 | 2.2 | [026](../assets/cucumber/026_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 27 | PASS | (50.00, 100.00) | 98.9999 | 1.9 | 2.2 | [027](../assets/cucumber/027_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 28 | PASS | (100.00, 50.00) | 99.9999 | 2.0 | 2.2 | [028](../assets/cucumber/028_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 29 | PASS | (50.00, 100.00) | 99.9999 | 1.8 | 2.0 | [029](../assets/cucumber/029_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 30 | PASS | (0.00, 85.36) | 60.3553 | 2.1 | 2.4 | [030](../assets/cucumber/030_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 31 | PASS | (0.00, 85.36) | 60.3553 | 2.1 | 2.5 | [031](../assets/cucumber/031_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 32 | PASS | (50.00, 100.00) | 159.9999 | 1.9 | 2.3 | [032](../assets/cucumber/032_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
+| 33 | PASS | (0.00, 50.00) | 199.9999 | 1.7 | 2.0 | [033](../assets/cucumber/033_single-flight_coverage_of_a_square_oblique_or_off-center_flight_leaves.png) |
 
 #### centered axis-parallel flight views the whole square
 
@@ -288,12 +288,12 @@ Example rows exercised (from the feature source):
 
 | # | Result | Reported | dmin (km) | run ms | wall ms | Coverage image |
 |---|---|---|---|---|---|---|
-| 34 | PASS | OK | - | 1.9 | 20.3 | [034](../assets/cucumber/034_single-flight_coverage_of_a_square_centered_axis-parallel_flight_views.png) |
-| 35 | PASS | OK | - | 1.9 | 23.3 | [035](../assets/cucumber/035_single-flight_coverage_of_a_square_centered_axis-parallel_flight_views.png) |
-| 36 | PASS | OK | - | 2.0 | 25.0 | [036](../assets/cucumber/036_single-flight_coverage_of_a_square_centered_axis-parallel_flight_views.png) |
-| 37 | PASS | OK | - | 1.6 | 23.9 | [037](../assets/cucumber/037_single-flight_coverage_of_a_square_centered_axis-parallel_flight_views.png) |
-| 38 | PASS | OK | - | 1.7 | 22.7 | [038](../assets/cucumber/038_single-flight_coverage_of_a_square_centered_axis-parallel_flight_views.png) |
-| 39 | PASS | OK | - | 1.9 | 24.5 | [039](../assets/cucumber/039_single-flight_coverage_of_a_square_centered_axis-parallel_flight_views.png) |
+| 34 | PASS | OK | - | 1.9 | 21.9 | [034](../assets/cucumber/034_single-flight_coverage_of_a_square_centered_axis-parallel_flight_views.png) |
+| 35 | PASS | OK | - | 2.0 | 23.5 | [035](../assets/cucumber/035_single-flight_coverage_of_a_square_centered_axis-parallel_flight_views.png) |
+| 36 | PASS | OK | - | 1.7 | 24.7 | [036](../assets/cucumber/036_single-flight_coverage_of_a_square_centered_axis-parallel_flight_views.png) |
+| 37 | PASS | OK | - | 2.0 | 21.8 | [037](../assets/cucumber/037_single-flight_coverage_of_a_square_centered_axis-parallel_flight_views.png) |
+| 38 | PASS | OK | - | 1.9 | 21.5 | [038](../assets/cucumber/038_single-flight_coverage_of_a_square_centered_axis-parallel_flight_views.png) |
+| 39 | PASS | OK | - | 2.0 | 23.9 | [039](../assets/cucumber/039_single-flight_coverage_of_a_square_centered_axis-parallel_flight_views.png) |
 
 ### Feature file: `tests/features/stress.feature` (3 scenarios)
 
@@ -314,9 +314,9 @@ Example rows exercised (from the feature source):
 
 | # | Result | Reported | dmin (km) | run ms | wall ms | Coverage image |
 |---|---|---|---|---|---|---|
-| 40 | PASS | (43.43, 90.71) | 50.0001 | 3.0 | 4.1 | [040](../assets/cucumber/040_performance_envelope_N_100_stress_inputs_example_1_.png) |
-| 41 | PASS | OK | - | 2.5 | 457.9 | [041](../assets/cucumber/041_performance_envelope_N_100_stress_inputs_example_2_.png) |
-| 42 | PASS | OK | - | 2.6 | 440.9 | [042](../assets/cucumber/042_performance_envelope_N_100_stress_inputs_example_3_.png) |
+| 40 | PASS | (43.43, 90.71) | 50.0001 | 3.1 | 4.1 | [040](../assets/cucumber/040_performance_envelope_N_100_stress_inputs_example_1_.png) |
+| 41 | PASS | OK | - | 2.2 | 438.3 | [041](../assets/cucumber/041_performance_envelope_N_100_stress_inputs_example_2_.png) |
+| 42 | PASS | OK | - | 2.2 | 413.4 | [042](../assets/cucumber/042_performance_envelope_N_100_stress_inputs_example_3_.png) |
 
 ### Feature file: `tests/features/validation.feature` (13 scenarios)
 
@@ -347,18 +347,18 @@ Example rows exercised (from the feature source):
 
 | # | Result | Reported | dmin (km) | run ms | wall ms | Coverage image |
 |---|---|---|---|---|---|---|
-| 43 | PASS | ERROR | - | 2.0 | 2.3 | [043](../assets/cucumber/043_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
-| 44 | PASS | ERROR | - | 2.8 | 3.1 | [044](../assets/cucumber/044_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
-| 45 | PASS | ERROR | - | 2.0 | 2.3 | [045](../assets/cucumber/045_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
-| 46 | PASS | ERROR | - | 2.0 | 2.2 | [046](../assets/cucumber/046_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
-| 47 | PASS | ERROR | - | 2.0 | 2.2 | [047](../assets/cucumber/047_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
-| 48 | PASS | ERROR | - | 1.6 | 1.8 | [048](../assets/cucumber/048_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
-| 49 | PASS | ERROR | - | 1.8 | 2.0 | [049](../assets/cucumber/049_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
-| 50 | PASS | ERROR | - | 2.1 | 2.3 | [050](../assets/cucumber/050_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
-| 51 | PASS | ERROR | - | 2.0 | 2.3 | [051](../assets/cucumber/051_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
-| 52 | PASS | ERROR | - | 1.9 | 2.1 | [052](../assets/cucumber/052_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
+| 43 | PASS | ERROR | - | 2.1 | 2.3 | [043](../assets/cucumber/043_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
+| 44 | PASS | ERROR | - | 1.9 | 2.2 | [044](../assets/cucumber/044_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
+| 45 | PASS | ERROR | - | 1.8 | 2.1 | [045](../assets/cucumber/045_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
+| 46 | PASS | ERROR | - | 1.8 | 2.0 | [046](../assets/cucumber/046_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
+| 47 | PASS | ERROR | - | 1.8 | 2.0 | [047](../assets/cucumber/047_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
+| 48 | PASS | ERROR | - | 1.8 | 2.0 | [048](../assets/cucumber/048_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
+| 49 | PASS | ERROR | - | 2.1 | 2.4 | [049](../assets/cucumber/049_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
+| 50 | PASS | ERROR | - | 1.7 | 2.0 | [050](../assets/cucumber/050_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
+| 51 | PASS | ERROR | - | 1.9 | 2.2 | [051](../assets/cucumber/051_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
+| 52 | PASS | ERROR | - | 1.7 | 2.0 | [052](../assets/cucumber/052_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
 | 53 | PASS | ERROR | - | 1.8 | 2.1 | [053](../assets/cucumber/053_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
-| 54 | PASS | ERROR | - | 2.0 | 2.3 | [054](../assets/cucumber/054_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
-| 55 | PASS | ERROR | - | 2.0 | 2.3 | [055](../assets/cucumber/055_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
+| 54 | PASS | ERROR | - | 1.9 | 2.2 | [054](../assets/cucumber/054_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
+| 55 | PASS | ERROR | - | 1.7 | 1.9 | [055](../assets/cucumber/055_input_validation_policy_A-2__malformed_or_out-of-range_inputs_are_reje.png) |
 
 <!-- GHERKIN-REPORT:END -->

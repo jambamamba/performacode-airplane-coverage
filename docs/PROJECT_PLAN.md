@@ -823,6 +823,7 @@ Legend — Type: **U** unit, **I** integration, **E** edge, **T** timing/resourc
 | TC-15 | E | **Vertex-counterexample regression**: 3 flights, triangle inradius 80, L=1000 | Unviewed point in inner triangle reported (vertex method would wrongly print `OK`) | §1.1 |
 | TC-16 | E | Unviewed region touching only the square border; flights covering the rest | Point reported inside/on border, never outside | FR-10 |
 | TC-17 | T | N=100 worst-case (many near-parallel lines) timing | Total < 1 s (100× margin); phase budgets of §7.1 not exceeded | FR-12, §7.1 |
+| TC-20 | E | L=999.999 (just inside the upper bound), single flight (0,500)→(L,500) — pairs with TC-09b's just-outside rejection | Unviewed point reported (band misses bottom strip); output snapshotted, oracle-verified | FR-05, FR-10 |
 | TC-18 | T | valgrind massif / RSS measurement | Peak RSS < 10 MB | DR-07 |
 | TC-19 | T | All fixtures rerun with ASan+UBSan | Zero findings; deterministic byte-identical outputs vs normal build | DR-08, DR-10 |
 | TC-U01..U22 | U | Function-level: parsing, normalization, clip (empty/full/point/corner-guard), parallel lines, dedupe, `testCandidate` MC/DC M1-M4, best-margin selection, formatting | Per-unit expected values | §9.2 |
@@ -937,7 +938,7 @@ depend on the C++17 standard library **only**.
 | FR-02 | 4.3 | TC-01..TC-11 (all write exactly one line) |
 | FR-03 | 4.2, 4.4 | TC-10 |
 | FR-04 | 4.1 | TC-07, TC-U02..U04 |
-| FR-05 | 4.1 | TC-05, TC-09, TC-U05 |
+| FR-05 | 4.1 | TC-05, TC-09, TC-20, TC-U05 |
 | FR-06 | 4.1 | TC-08, TC-U06 |
 | FR-07 | 4.1 | TC-06, TC-U07 |
 | FR-08 | 4.1 | TC-11 |
