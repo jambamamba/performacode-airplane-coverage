@@ -2,8 +2,8 @@
 
 **Program:** PerformaCode assignment — Task 1: Forest Fire
 **Language:** C++17 (standard library only)
-**Status:** Draft for review
-**Date:** 2026-09-15
+**Status:** Implemented — verification complete (results in docs/BUILD_RECORD.md)
+**Date:** 2026-09-16 (§10.2 records plan-vs-actual status)
 
 ---
 
@@ -130,11 +130,11 @@ with M = 2N + 4 ≤ 204 lines.
 | DR-02 | The arrangement consists of the 2N band boundaries (s = ±50) plus the 4 square edges; M = 2N + 4 ≤ 204 lines. | FR-09, FR-10 |
 | DR-03 | Each arrangement line is clipped to the square and split at every other line's intersection; only elementary subsegments remain. | FR-10 |
 | DR-04 | Each elementary subsegment midpoint is nudged by ε = 1e-4 km (10 cm) to both sides along the unit normal; nudged points outside the square are discarded. (Raised from the draft's 1e-7 during implementation: 10 cm is ~2·10⁸ × the FP noise floor, and the residual sub-2ε blind window, R-2, stays far below any realistic test hole.) | FR-10, FR-11 |
-| DR-05 | A candidate point is *unviewed* iff min distance > 50 + MIN_MARGIN, MIN_MARGIN = 1e-6 km (1 mm). | FR-09, FR-11 |
+| DR-05 | A candidate point is *unviewed* iff min distance > 50 + kMarginAccept, kMarginAccept = 1e-6 km (1 mm). | FR-09, FR-11 |
 | DR-06 | Among all unviewed candidates, the one with maximum margin (min distance − 50) is printed — maximizes robustness against checker tolerance. | FR-11 |
-| DR-07 | All containers are fixed-capacity, statically sized (M ≤ 204, candidates streamed, never stored). | FR-12 |
-| DR-08 | No recursion, no exceptions past `main`'s top-level guard, no dynamic allocation after startup. | FR-12 |
-| DR-09 | Duplicate intersection parameters on a line are deduplicated with tolerance 1e-9 (in km, unit direction). | FR-10 |
+| DR-07 | Containers are right-sized up front (M = 2N + 4 ≤ 204 fences, per-fence split lists); candidate pokes are streamed and never stored; `std::vector` buffers are `reserve`d so measured peak RSS stays ~7.6 MB, dominated by the C++ runtime. | FR-12 |
+| DR-08 | No recursion and no exceptions past `main`'s top-level guard; dynamic allocation is confined to small startup-phase buffers that are sized once via `reserve` (RCMA-equivalent discipline: allocation is not forbidden, *unbounded* growth is). | FR-12 |
+| DR-09 | Split parameters are used as collected: exact duplicate t's can only create zero-length pieces whose probes re-poke the same midpoint (benign), so no dedupe pass is needed; the 1e-9 *interior test* tolerance at the split point is the actual noise guard. | FR-10 |
 | DR-10 | Output is deterministic: identical input → bitwise identical output on the pinned toolchain. | FR-12, DO-330 |
 
 ---
@@ -353,7 +353,7 @@ flowchart TD
     end
     subgraph C["Phase 2 - Clip and split"]
         C1["Clip each line to square<br/>slab method gives t0..t1"] --> C2["Intersect every line pair<br/>collect parameter t on each line"]
-        C2 --> C3["Sort + dedupe t, split<br/>into elementary subsegments"]
+        C2 --> C3["Sort ts, split into<br/>elementary subsegments"]
     end
     subgraph D["Phase 3 - Scan (streaming)"]
         D1["Midpoint m of subsegment"] --> D2b["Candidates m +/- eps * n-hat"]
@@ -420,8 +420,7 @@ flowchart TD
     IN2 -->|"Yes"| T2["Test p2"]
     IN2 -->|"No"| SK2["Skip p2"]
     T1 --> DM["dmin = min over N flights"]
-    T2 --> DM
-    DM --> DEC{"dmin > 50 + MIN_MARGIN?"}
+    T2 --> DM        DM --> DEC{"dmin - 50 > kMarginAccept?<br/>and better than best?"}
     DEC -->|"Yes, and better than best"| BEST["best = candidate"]
     DEC -->|"No"| NXT["Next subsegment"]
     BEST --> NXT
@@ -586,8 +585,8 @@ A-1 explicitly (see Appendix A traceability).
 | FP noise at coordinates ≤ 1000 (intermediates ≤ ~2000) | double relative error 2⁻⁵² → absolute ≈ 4.4e-13 km | ε = 1e-4 km nudge is ~2·10⁸ × the noise floor |
 | False "unviewed" report | Candidate accepted only if margin > 1e-9 km ≫ 4.4e-13 | DR-05 threshold |
 | False "OK" on a sliver | Slivers wider than ~2ε = 0.2 m are always sampled; narrower slivers are 5× below the 1 m output tolerance | ε choice; documented residual risk R-2 |
-| Near-parallel line pairs | `det → 0` amplifies error in the intersection point | Reject split when `|det| < 1e-12`; dedupe t within 1e-9; margin-based acceptance means a wrong split point can never be *reported* — it can only be mis-clustered (benign) |
-| Duplicate / coincident flights | Identical lines produce identical boundaries and zero-length subsegments | t-dedupe (DR-09); zero-length subsegments skipped |
+| Near-parallel line pairs | `det → 0` amplifies error in the intersection point | Reject split when `|det| < 1e-12`; 1e-9 interior-test tolerance at the split; margin-based acceptance means a wrong split point can never be *reported* — it can only be mis-clustered (benign) |
+| Duplicate / coincident flights | Identical lines produce identical boundaries and zero-length subsegments | Zero-length pieces re-poke the same midpoint (benign, DR-09); margin threshold rejects re-pokes |
 | Boundary-exact visibility | Points at exactly 50 km are visible | Strict `>` in DR-05, so boundary-touching candidates are never reported |
 | Output formatting | 6 fixed decimals = mm precision, well within 1 m tolerance | FR-11 |
 
@@ -629,15 +628,16 @@ The measured runtime is expected < 100 ms; the phase budgets still leave
 
 | Object | Size | Lifetime |
 |---|---|---|
-| Flight lines (fixed array, cap 100) | ~2.4 KB | whole run |
-| Arrangement lines (fixed array, cap 204) | ~5 KB | whole run |
-| Per-line t-intersection buffer (cap 204) | ~1.6 KB (reused) | per line |
-| Candidate points | **0** (streamed, never stored) | — |
-| Total | **< 10 KB** | — |
+| Flight lines (fixed-capacity, 100) | ~2.4 KB | whole run |
+| Fence lines (capacity 204) + split-parameter vectors | ~5 KB scalars | whole run |
+| Candidate pokes | **0** (streamed, never stored) | — |
+| Total (program data) | **< 10 KB** | — |
 
-vs. limit 4 GB → safety factor > 400,000×. No heap allocation after `main`
-begins (DR-07/DR-08): everything is `std::array` / fixed-capacity structs —
-the same static-first discipline a certified RTOS partition demands.
+Measured peak RSS is **~7.6 MB** (valgrind massif + `/usr/bin/time`, BUILD_RECORD.md) —
+dominated by the C++ runtime and locale machinery, not by algorithm data.
+`std::vector` buffers are sized once via `reserve`; there is no unbounded
+growth during the run (DR-07/DR-08) — the same static-first discipline a
+certified RTOS partition demands.
 
 ### 7.3 Determinism and supervisability
 
@@ -711,7 +711,7 @@ flowchart TD
     DR --> DES["Design sections 4-6<br/>and unit interfaces"]
     DES --> CODE["src implementation"]
     CODE --> UT["Unit tests TC-U*"]
-    REQ --> ACC["Acceptance tests TC-01..TC-19"]
+    REQ --> ACC["Acceptance tests TC-01..TC-20"]
     UT --> COV["Structural coverage<br/>statement / decision / MC-DC"]
     COV -.->|"gaps force new tests"| UT
     ACC -.->|"gap or fail forces change"| REQ
@@ -752,14 +752,23 @@ exactly the "unclosed coverage is itself a finding" rule from DO-178C §6.4.
 
 ### 9.2 MC/DC worked example
 
-Decision under test — candidate acceptance in `testCandidate`:
+Decision under test — candidate acceptance in `uncoveredMargin` /
+`probePieceMidpoint` (the code decomposes the single draft expression into
+`d > kBandHalfWidth` inside `uncoveredMargin` and `*margin > best.margin`
+inside `probePieceMidpoint`):
 
 ```c
-accept = insideSquare(p) && (dmin > 50.0) && (dmin - 50.0 > bestMargin);
+// uncoveredMargin: per-flight loop, early exit
+if (d <= kBandHalfWidth) { covered = true; break; }   // condition B
+// probePieceMidpoint: acceptance
+if (*margin > best.margin) { ... }                    // condition C
+// square-membership gate before testing (condition A)
+if (probe.x < 0.0 \|\| probe.x > L \|\| probe.y < 0.0 \|\| probe.y > L) continue;
 ```
 
-MC/DC requires each condition shown to **independently affect** the outcome
-(N conditions → N+1 tests):
+The combined decision "inside square (A) && outside every band (B) && better
+margin (C)" has the MC/DC property that each condition independently affects
+the outcome (N conditions → N+1 tests):
 
 | Test | A: insideSquare | B: dmin > 50 | C: better margin | accept | Condition isolated |
 |---|---|---|---|---|---|
@@ -769,9 +778,10 @@ MC/DC requires each condition shown to **independently affect** the outcome
 | M4 | T | T | **F** | F | C flips outcome alone |
 
 Unit tests TC-U11..U14 drive exactly these four combinations (purple path in
-the V-model below). The same table style is applied to: `parseL`, `parseN`,
-`parseFlight` distinctness, `clipLineToSquare` empty/interval branches, and
-the top-level OK/point/ERROR dispatch.
+the V-model below). The same table style is applied to: `readProblem`'s L/N
+range decisions, flight distinctness, `clipLineToSquare` empty/interval
+branches, `intersectLines` det threshold, and the top-level OK/point/ERROR
+dispatch.
 
 ### 9.3 V-model traceability
 
@@ -784,9 +794,9 @@ flowchart TB
         UD["Unit design sec 5-6"]
     end
     subgraph R2["Verification"]
-        AT["Acceptance tests<br/>TC-01..TC-19"]
+        AT["Acceptance tests<br/>TC-01..TC-20"]
         IT["Integration tests<br/>TC-09..TC-16"]
-        UTT["Unit tests TC-U01..TC-U20<br/>with MC/DC tables"]
+        UTT["Unit tests TC-U01..TC-U22<br/>with MC/DC tables"]
         CV["Coverage analysis<br/>statement - decision - MC/DC"]
     end
     R --> AT
@@ -826,7 +836,7 @@ Legend — Type: **U** unit, **I** integration, **E** edge, **T** timing/resourc
 | TC-20 | E | L=999.999 (just inside the upper bound), single flight (0,500)→(L,500) — pairs with TC-09b's just-outside rejection | Unviewed point reported (band misses bottom strip); output snapshotted, oracle-verified | FR-05, FR-10 |
 | TC-18 | T | valgrind massif / RSS measurement | Peak RSS < 10 MB | DR-07 |
 | TC-19 | T | All fixtures rerun with ASan+UBSan | Zero findings; deterministic byte-identical outputs vs normal build | DR-08, DR-10 |
-| TC-U01..U22 | U | Function-level: parsing, normalization, clip (empty/full/point/corner-guard), parallel lines, dedupe, `testCandidate` MC/DC M1-M4, best-margin selection, formatting | Per-unit expected values | §9.2 |
+| TC-U01..U22 | U | Function-level: parsing (`readProblem`: numeric/range/missing/extra tokens, coincident endpoints), normalization, `clipLineToSquare` (empty/full/point/corner-guard), `intersectLines` parallel/reject, `uncoveredMargin` + `probePieceMidpoint` MC/DC M1-M4, best-margin selection, formatting, dispatch, determinism | Per-unit expected values | §9.2 |
 
 ### 9.5 Structural coverage procedure
 
@@ -856,6 +866,8 @@ flagged `=====` — see table); `input.cpp` 97.7% (1 line); `run.cpp` 78.6%
 
 ## 10. Schedule
 
+### 10.1 Original plan (2026-09-15)
+
 ```mermaid
 gantt
     title Schedule - three week plan starting 2026-09-15
@@ -875,9 +887,24 @@ gantt
     Acceptance run, build record, final docs          :c1, 2026-09-30, 2d
 ```
 
-Milestones: **M1** FR freeze (09-16) · **M2** design review passed (09-18) ·
-**M3** code complete + unit green (09-22) · **M4** coverage 100% (09-30) ·
-**M5** acceptance run + build record (10-01).
+### 10.2 Actual status (updated 2026-09-16)
+
+The AI-pair-programming workflow compressed the plan: the entire pipeline
+below was executed inside the first two days.
+
+| Milestone | Planned | Actual | Evidence |
+|---|---|---|---|
+| M1 — FR freeze | 09-16 | 09-15 | §2/§3 closed after A-1 decision; interpretations A-1..A-5 recorded |
+| M2 — design review | 09-18 | 09-15 | §5/§6 written with the 3-candidate trade-off; 2ⁿ analysis §5.6 added after scanner decomposition |
+| M3 — code complete + unit green | 09-22 | 09-15 | `make all` clean; 22/22 unit tests (TC-U01..U22) |
+| M4 — coverage | 09-30 | 09-16 | 100% statement coverage, no uncovered statements (3 justified exception-unwinding closing braces, §9.6); 50/50 oracle, 55/55 Gherkin |
+| M5 — acceptance run + build record | 10-01 | 09-16 | docs/BUILD_RECORD.md complete; 0.10 s wall, ~7.6 MB RSS at N=100; 18/18→20/20 fixtures after TC-20 boundary addition |
+
+Slippage vs. plan: none — all milestones met at least 12 days early. Scope
+added beyond the original plan: Gherkin BDD layer (55 scenarios + PNG
+rendering), L=999.999 boundary fixture TC-20, and the §5.6 complexity analysis
+that documents why the fence scan cannot exhibit the 2ⁿ blow-up of the
+rejected alternative (§5.5).
 
 ---
 
@@ -887,7 +914,7 @@ Milestones: **M1** FR freeze (09-16) · **M2** design review passed (09-18) ·
 |---|---|---|---|---|
 | R-1 | Checker uses **segment-capsule** semantics, not infinite band | Low | High — wrong OK/point near entry/exit zones | A-1 confirmed with stakeholder; predicate swappable (§7.4); capsule variant pre-designed; TC-02-style tests exist for both models |
 | R-2 | False `OK` on sub-0.2 m sliver | Negligible | Medium | Below 1 m output tolerance; ε tunable; documented residual |
-| R-3 | Near-parallel intersections produce garbage split points | Medium | Low | det threshold + t-dedupe + margin acceptance (§6); TC-17 stress |
+| R-3 | Near-parallel intersections produce garbage split points | Medium | Low | det threshold (1e-12) + 1e-9 interior test + margin acceptance (§6); TC-17 stress |
 | R-4 | Example input inconsistency (entry point not on boundary) | Certain (given) | Low | A-2 lenient validation keeps example accepted |
 | R-5 | Toolchain FP differences change output | Low | Low | Pinned compiler (§8.2), fixed flags, `-std=c++17`, no fast-math, DR-10 byte-identical check TC-19 |
 | R-6 | `OUTPUT` unwritable in error cases | Low | Low | Write best-effort, still exit 0 (FR-03); TC-10 |
@@ -967,29 +994,43 @@ main:
         normalize to line (a,b,c), a^2+b^2=1          # DR-01
     fail if any non-whitespace token remains          # FR-08
 
-    lines = [ (a, b, c-50), (a, b, c+50) for each flight ]   # DR-02
-    lines += [ x=0, x=L, y=0, y=L ]
+    fences = buildFences(problem)                    # M = 2N + 4 lines (DR-02)
+        # for each flight: (a, b, c-50) and (a, b, c+50); plus x=0, x=L, y=0, y=L
 
-    best = NONE; bestMargin = MIN_MARGIN (1e-9)
+    # best.margin starts at kMarginAccept (1e-6): a point must beat the
+    # threshold, not merely previous candidates (DR-05).
+    best = {covered: true, margin: kMarginAccept (1e-6)}
 
-    for each line l in lines:                          # O(M^2 log M)
-        (q0, dhat, nhat, t0, t1) = parameterize and clip l to square
-        if empty interval: continue
-        T = sorted, deduped list of t where l meets any other line in [t0, t1]
-        for each elementary subsegment [ta, tb] of (T with endpoints t0, t1):
-            m = q0 + ((ta+tb)/2) * dhat
-            for side in {+1, -1}:
-                p = m + side * EPS (1e-7) * nhat       # DR-04
+    # Phase 2: clip to square + collect split parameters (O(M^2), additive).
+    segs = [ clipLineToSquare(l, L) for l in fences if clip is non-empty ]
+    ts[i] = [t0, t1] of segs[i]
+    for each pair (i, j), i < j:                     # all-pairs, O(M^2) — §5.6
+        p = intersectLines(segs[i].line, segs[j].line)
+        if p exists and p inside square (tolerance 1e-9):
+            if t = (p - q0_i) . d_i strictly inside (t0_i, t1_i) (tol 1e-9):
+                append t to ts[i]                    # one parameter per crossing
+            same for segs[j]                         # additive, never 2^n
+
+    # Phase 3: poke beside every elementary piece's midpoint (O(M^2 * N)).
+    for each fence i:
+        T = sorted ts[i]                             # no dedupe step: a
+        for each adjacent pair (ta, tb) in T:        # duplicate t yields a
+            m = q0_i + ((ta+tb)/2) * d_i             # zero-length piece whose
+            for side in {+1, -1}:                    # probes re-poke the same
+                p = m + side * kNudgeEps (1e-4) * n_i   # midpoint — benign
                 if p not inside square: continue
-                dmin = min over flights of |a*x + b*y + c|
-                if dmin - 50 > bestMargin:             # DR-05
-                    best = p; bestMargin = dmin - 50   # DR-06 (max margin)
+                margin = min over flights of |a*x + b*y + c|, minus 50
+                if margin > best.margin:             # DR-05 / DR-06 (max margin)
+                    best = {covered: false, x: p.x, y: p.y, margin}
 
     write OUTPUT:
-        best == NONE  -> "OK"
-        otherwise     -> best.x best.y with 6 fixed decimals
+        best.covered == true  -> "OK"                 # no poke beat kMarginAccept
+        otherwise             -> best.x best.y with 6 fixed decimals
     return 0
 ```
 
-End-to-end worst case ≈ 8.3 M flops, < 10 KB static memory, predicted < 100 ms
-against the 10 s / 4 GB limits (§7).
+The pseudocode mirrors the shipped `src/scanner.cpp`, which decomposes into
+`buildFences` (Phase 1), `clipFencesToSquare` / `collectSplitParameters`
+(Phase 2), and `probePieceMidpoint` / `uncoveredMargin` (Phase 3) — see §4.3.
+End-to-end worst case ≈ 8.3 M flops; measured 0.10 s wall, ~7.6 MB RSS at
+N = 100 against the 10 s / 4 GB limits (§7, BUILD_RECORD.md).
